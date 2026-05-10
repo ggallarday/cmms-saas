@@ -1,0 +1,1972 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CMMS — Mantenimiento Predictivo Industrial</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: '#ff8235',
+            'brand-dark': '#e06520',
+            dark: '#0a0a0a',
+          },
+          fontFamily: {
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          keyframes: {
+            ping2: { '75%,100%': { transform: 'scale(2)', opacity: '0' } },
+            fadeIn: { from: { opacity: '0', transform: 'translateY(8px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+            slideUp: { from: { opacity: '0', transform: 'translateY(40px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+          },
+          animation: {
+            ping2: 'ping2 1.4s cubic-bezier(0,0,0.2,1) infinite',
+            fadeIn: 'fadeIn 0.4s ease forwards',
+            slideUp: 'slideUp 0.5s ease forwards',
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --brand: #ff8235;
+      --brand-rgb: 255, 130, 53;
+      --alert: #ff4444;
+      --alert-rgb: 255, 68, 68;
+    }
+    * { box-sizing: border-box; }
+    body { background-color: #0a0a0a; }
+
+    /* Glassmorphism */
+    .glass {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .glass-dark {
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* Brand gradient text */
+    .text-brand-grad {
+      background: linear-gradient(135deg, #ffffff 0%, #ff8235 55%, #ffb380 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Grid bg */
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(255,130,53,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,130,53,0.05) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    /* Brand dot */
+    .dot-brand {
+      width: 8px; height: 8px;
+      background: var(--brand);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--brand), 0 0 16px rgba(var(--brand-rgb),0.5);
+      animation: pulse 2s infinite;
+    }
+    .dot-alert {
+      width: 8px; height: 8px;
+      background: var(--alert);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--alert), 0 0 16px rgba(var(--alert-rgb),0.5);
+      animation: pulse 1.5s infinite;
+    }
+
+    /* Progress fill */
+    .progress-fill { animation: fillBar 2.5s ease-out forwards; }
+    @keyframes fillBar { from { width: 0%; } to { width: var(--tw); } }
+
+    /* Card hover */
+    .card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 0 28px rgba(var(--brand-rgb),0.15); }
+
+    /* QR pulse */
+    .qr-pulse { animation: qrPulse 2.5s ease-in-out infinite; }
+    @keyframes qrPulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(var(--brand-rgb),0.5), 0 0 20px rgba(var(--brand-rgb),0.3); }
+      50%      { box-shadow: 0 0 0 14px rgba(var(--brand-rgb),0), 0 0 40px rgba(var(--brand-rgb),0.5); }
+    }
+
+    /* Alert ping */
+    .ping-alert {
+      position: relative;
+      display: inline-flex;
+    }
+    .ping-alert::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: var(--alert);
+      animation: ping 1.4s cubic-bezier(0,0,0.2,1) infinite;
+    }
+    @keyframes ping {
+      75%,100% { transform: scale(2.2); opacity: 0; }
+    }
+
+    /* Page transitions */
+    #landingPage { transition: opacity 0.6s ease; }
+    #appPage { transition: opacity 0.6s ease; }
+
+    /* Login modal */
+    #loginModal { transition: opacity 0.3s ease; }
+
+    /* Input styles */
+    .form-input {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: white;
+      padding: 12px 16px;
+      width: 100%;
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus { border-color: rgba(var(--brand-rgb),0.6); box-shadow: 0 0 0 3px rgba(var(--brand-rgb),0.1); }
+    .form-input::placeholder { color: rgba(255,255,255,0.3); }
+
+    /* Shake animation */
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20%,60% { transform: translateX(-6px); }
+      40%,80% { transform: translateX(6px); }
+    }
+    .shake { animation: shake 0.4s ease; }
+
+    /* Navbar */
+    #mainNav { transition: background 0.3s ease; }
+
+    /* Shimmer */
+    .shimmer {
+      position: relative;
+      overflow: hidden;
+    }
+    .shimmer::after {
+      content:'';
+      position:absolute;
+      inset:0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+      background-size: 200% 100%;
+      animation: shimmer 3s infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    /* OT status badge interactive */
+    .ot-status { cursor: pointer; user-select: none; transition: all 0.2s ease; }
+    .ot-status:hover { filter: brightness(1.2); transform: scale(1.05); }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: rgba(var(--brand-rgb),0.3); border-radius: 2px; }
+
+    /* IA widget glow */
+    .ia-widget {
+      background: linear-gradient(135deg, rgba(var(--brand-rgb),0.08) 0%, rgba(0,0,0,0.4) 100%);
+      border: 1px solid rgba(var(--brand-rgb),0.25);
+    }
+
+    /* App page hidden by default */
+    #appPage { display: none; opacity: 0; }
+
+    /* Dashboard scroll in app */
+    #appContent { overflow-y: auto; height: calc(100vh - 64px - 48px); }
+
+    /* Tab bar */
+    .tab-bar {
+      display: flex; overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none;
+      gap: 4px; padding: 6px 12px; background: rgba(0,0,0,0.6);
+      border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0;
+    }
+    .tab-bar::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      flex-shrink: 0; padding: 5px 14px; border-radius: 8px; font-size: 0.75rem;
+      font-weight: 500; color: rgba(255,255,255,0.45); background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06); cursor: pointer; transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: white; background: rgba(255,255,255,0.08); }
+    .tab-btn.active {
+      background: rgba(var(--brand-rgb),0.15); color: var(--brand);
+      border-color: rgba(var(--brand-rgb),0.35); box-shadow: 0 0 12px rgba(var(--brand-rgb),0.15);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Plant cell */
+    .plant-cell {
+      border-radius: 12px; padding: 12px; text-align: center; cursor: pointer;
+      transition: transform 0.2s ease; border: 1px solid rgba(255,255,255,0.06);
+    }
+    .plant-cell:hover { transform: scale(1.03); }
+    .plant-cell.ok { background: rgba(0,0,0,0.45); backdrop-filter: blur(12px); }
+    .plant-cell.alert {
+      background: rgba(var(--brand-rgb),0.12); border-color: rgba(var(--brand-rgb),0.35);
+      box-shadow: 0 0 16px rgba(var(--brand-rgb),0.12);
+    }
+
+    /* QR scan line */
+    @keyframes scanLine { 0%,100% { top: 8%; } 50% { top: 86%; } }
+    .scan-line {
+      position: absolute; left: 8%; right: 8%; height: 2px;
+      background: linear-gradient(90deg,transparent,var(--brand),transparent);
+      box-shadow: 0 0 8px var(--brand); animation: scanLine 2.5s ease-in-out infinite;
+    }
+
+    /* Inventory critical */
+    .inv-critical { border-left: 3px solid var(--brand) !important; }
+
+    /* Logo pills */
+    .logo-pill {
+      display: inline-flex; align-items: center; padding: 5px 14px; border-radius: 999px;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      font-size: 0.75rem; color: rgba(255,255,255,0.5); white-space: nowrap;
+    }
+
+    /* ROI slider */
+    .roi-slider {
+      -webkit-appearance: none; appearance: none;
+      width: 100%; height: 6px; border-radius: 999px; outline: none;
+      background: rgba(255,255,255,0.08); cursor: pointer;
+    }
+    .roi-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--brand); box-shadow: 0 0 10px rgba(var(--brand-rgb),0.5);
+      cursor: pointer; transition: transform 0.15s;
+    }
+    .roi-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+    /* Plant modal */
+    #plantModal {
+      position: fixed; inset: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.65); backdrop-filter: blur(6px);
+      opacity: 0; pointer-events: none; transition: opacity 0.25s;
+    }
+    #plantModal.open { opacity: 1; pointer-events: all; }
+    #plantModal .modal-box {
+      width: 100%; max-width: 360px; margin: 16px;
+      border-radius: 20px; padding: 28px;
+      background: rgba(15,15,15,0.95);
+      border: 1px solid rgba(var(--brand-rgb),0.25);
+      box-shadow: 0 0 60px rgba(var(--brand-rgb),0.15);
+      animation: slideUp 0.3s ease forwards;
+    }
+
+    /* Filter pills */
+    .filter-pill {
+      padding: 4px 12px; border-radius: 999px; font-size: 0.7rem; font-weight: 500;
+      cursor: pointer; border: 1px solid rgba(255,255,255,0.08); transition: all 0.15s;
+      color: rgba(255,255,255,0.45); background: rgba(255,255,255,0.04);
+    }
+    .filter-pill.active {
+      background: rgba(var(--brand-rgb),0.15); color: var(--brand);
+      border-color: rgba(var(--brand-rgb),0.35);
+    }
+  </style>
+</head>
+<body class="font-sans text-white antialiased">
+
+<!-- ============================================================ -->
+<!-- LOGIN MODAL -->
+<!-- ============================================================ -->
+<div id="loginModal" class="fixed inset-0 z-[100] flex items-center justify-center hidden" style="background:rgba(0,0,0,0.7); backdrop-filter:blur(8px);">
+  <div class="w-full max-w-sm mx-4 rounded-2xl overflow-hidden animate-slideUp" style="background:#111; border:1px solid rgba(255,130,53,0.2); box-shadow:0 0 60px rgba(255,130,53,0.15);">
+    <!-- Modal header -->
+    <div class="px-8 pt-8 pb-6 border-b border-white/5">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#ff8235,#e06520);">
+          <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M13.5 2c-5.621 0-10.211 4.443-10.475 10H1l4 4 4-4H7.025C7.29 8.562 10.065 6 13.5 6c3.584 0 6.5 2.916 6.5 6.5S17.084 19 13.5 19c-1.993 0-3.776-.906-4.992-2.339L7.101 18.07C8.694 19.907 11.013 21 13.5 21c4.687 0 8.5-3.813 8.5-8.5S18.187 2 13.5 2z"/>
+          </svg>
+        </div>
+        <span class="font-bold text-white tracking-tight">CMMS</span>
+      </div>
+      <h2 class="text-xl font-black text-white">Acceder al sistema</h2>
+      <p class="text-xs text-gray-500 mt-1">Ingresa tus credenciales de acceso</p>
+    </div>
+
+    <div class="px-8 py-6 space-y-4">
+      <!-- Demo hint -->
+      <div class="text-xs px-3 py-2 rounded-lg font-mono" style="background:rgba(255,130,53,0.08); border:1px solid rgba(255,130,53,0.15); color:rgba(255,130,53,0.8);">
+        Demo: admin@textilsmart.com / demo1234
+      </div>
+
+      <div>
+        <label class="block text-xs text-gray-400 mb-2 font-medium">Correo electrónico</label>
+        <input type="email" id="loginEmail" class="form-input" placeholder="usuario@empresa.com" value="admin@textilsmart.com" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-400 mb-2 font-medium">Contraseña</label>
+        <div class="relative">
+          <input type="password" id="loginPassword" class="form-input pr-10" placeholder="••••••••" value="demo1234" />
+          <button onclick="togglePass()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
+            <svg id="eyeIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <p id="loginError" class="text-xs text-red-400 hidden">Credenciales incorrectas. Intenta de nuevo.</p>
+
+      <button onclick="handleLogin()"
+        class="w-full py-3 rounded-xl font-bold text-sm transition-all hover:scale-[1.02] active:scale-95 mt-2"
+        style="background:linear-gradient(135deg,#ff8235,#e06520); color:white; box-shadow:0 0 24px rgba(255,130,53,0.35);">
+        <span id="loginBtnText">Iniciar Sesión</span>
+      </button>
+
+      <button onclick="closeLoginModal()" class="w-full py-2 text-xs text-gray-500 hover:text-gray-300 transition-colors">
+        Cancelar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- LANDING PAGE -->
+<!-- ============================================================ -->
+<div id="landingPage">
+
+  <!-- NAVBAR -->
+  <nav id="mainNav" class="fixed top-0 left-0 right-0 z-50 border-b border-white/5" style="background:rgba(0,0,0,0.7); backdrop-filter:blur(16px);">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo -->
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#ff8235,#e06520);">
+            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M13.5 2c-5.621 0-10.211 4.443-10.475 10H1l4 4 4-4H7.025C7.29 8.562 10.065 6 13.5 6c3.584 0 6.5 2.916 6.5 6.5S17.084 19 13.5 19c-1.993 0-3.776-.906-4.992-2.339L7.101 18.07C8.694 19.907 11.013 21 13.5 21c4.687 0 8.5-3.813 8.5-8.5S18.187 2 13.5 2z"/>
+            </svg>
+          </div>
+          <span class="text-lg font-bold tracking-tight text-white">CMMS</span>
+        </div>
+        <!-- Links desktop -->
+        <div class="hidden md:flex items-center gap-8">
+          <a href="#dashboard" class="text-sm text-gray-400 hover:text-white transition-colors">Dashboard</a>
+          <a href="#funcionalidades" class="text-sm text-gray-400 hover:text-white transition-colors">Funcionalidades</a>
+          <a href="#equipo" class="text-sm text-gray-400 hover:text-white transition-colors">Equipo</a>
+          <a href="#contacto" class="text-sm text-gray-400 hover:text-white transition-colors">Contacto</a>
+        </div>
+        <!-- Login btn -->
+        <div class="flex items-center gap-3">
+          <button onclick="openLoginModal()"
+            class="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all hover:scale-105 active:scale-95"
+            style="background:linear-gradient(135deg,#ff8235,#e06520); color:white; box-shadow:0 0 20px rgba(255,130,53,0.35);">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+            </svg>
+            Iniciar Sesión
+          </button>
+          <button class="md:hidden p-2 rounded-lg glass" id="menuBtn">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Mobile menu -->
+    <div id="mobileMenu" class="hidden md:hidden border-t border-white/5 px-4 py-3 space-y-2" style="background:rgba(0,0,0,0.9);">
+      <a href="#dashboard" class="block text-sm text-gray-400 hover:text-white py-2">Dashboard</a>
+      <a href="#funcionalidades" class="block text-sm text-gray-400 hover:text-white py-2">Funcionalidades</a>
+      <a href="#equipo" class="block text-sm text-gray-400 hover:text-white py-2">Equipo</a>
+      <a href="#contacto" class="block text-sm text-gray-400 hover:text-white py-2">Contacto</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="relative min-h-screen flex items-center grid-bg pt-16 overflow-hidden">
+    <!-- Radial glows -->
+    <div class="absolute inset-0 pointer-events-none">
+      <div class="absolute top-1/3 left-1/4 w-[700px] h-[700px] rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(255,130,53,0.12),transparent 65%);"></div>
+      <div class="absolute bottom-0 right-0 w-[450px] h-[450px] rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(255,130,53,0.08),transparent 65%);"></div>
+      <div class="absolute top-0 right-1/4 w-[280px] h-[280px] rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(255,200,100,0.06),transparent 70%);"></div>
+    </div>
+
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+      <div class="max-w-4xl">
+        <!-- Badge -->
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass mb-6 text-xs font-mono" style="color:var(--brand); border-color:rgba(var(--brand-rgb),0.4); border:1px solid;">
+          <div class="dot-brand"></div>
+          Sistema Activo — Planta en Operación
+        </div>
+
+        <!-- Title -->
+        <h1 class="text-5xl sm:text-6xl lg:text-7xl font-black leading-[1.05] mb-6 tracking-tight">
+          Mantenimiento Predictivo<br/>
+          para la Industria Textil:<br/>
+          <span class="text-brand-grad">CMMS</span>
+        </h1>
+
+        <!-- Subtitle -->
+        <p class="text-lg sm:text-xl text-gray-400 max-w-2xl mb-10 leading-relaxed">
+          Controla el ciclo de vida de tus activos basado en <span class="text-white font-semibold">producción real</span>, no solo en tiempo.
+          Reduce el <span class="font-mono" style="color:var(--brand);">MTTR</span> y maximiza la disponibilidad de tu planta.
+        </p>
+
+        <!-- CTAs -->
+        <div class="flex flex-col sm:flex-row gap-4">
+          <button onclick="openLoginModal()"
+            class="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-base font-bold transition-all hover:scale-105 active:scale-95"
+            style="background:linear-gradient(135deg,#ff8235,#e06520); color:white; box-shadow:0 0 30px rgba(255,130,53,0.4);">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            Comenzar Prototipo
+          </button>
+          <a href="#funcionalidades"
+            class="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-base font-semibold glass border border-white/10 hover:border-white/20 transition-all">
+            Ver Funcionalidades
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </a>
+        </div>
+
+        <!-- Stats -->
+        <div class="flex flex-wrap gap-8 mt-16 pt-8 border-t border-white/5">
+          <div>
+            <div class="text-2xl font-black" style="color:var(--brand);">98.4%</div>
+            <div class="text-xs text-gray-500 mt-1">Disponibilidad media</div>
+          </div>
+          <div>
+            <div class="text-2xl font-black text-white">—32%</div>
+            <div class="text-xs text-gray-500 mt-1">Reducción de MTTR</div>
+          </div>
+          <div>
+            <div class="text-2xl font-black" style="color:var(--alert);">0</div>
+            <div class="text-xs text-gray-500 mt-1">Paros no planificados</div>
+          </div>
+          <div>
+            <div class="text-2xl font-black text-white">+120</div>
+            <div class="text-xs text-gray-500 mt-1">Activos gestionados</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BRAND STRIP -->
+  <div class="border-y border-white/5 py-5" style="background:rgba(0,0,0,0.4);">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <p class="text-center text-xs text-gray-600 uppercase tracking-widest mb-4 font-mono">Diseñado junto a líderes del sector textil peruano</p>
+      <div class="flex flex-wrap items-center justify-center gap-3">
+        <span class="logo-pill">Textil Andina</span>
+        <span class="logo-pill">Hilos del Sur</span>
+        <span class="logo-pill">Fábrica Perú</span>
+        <span class="logo-pill">IndumexSA</span>
+        <span class="logo-pill">Tejedores del Norte</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD PREVIEW (landing) -->
+  <section id="dashboard" class="relative py-16 overflow-hidden">
+    <div class="absolute inset-0 grid-bg opacity-30 pointer-events-none"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full glass border border-white/10 text-xs text-gray-400 mb-4 font-mono">PANEL DE CONTROL INDUSTRIAL</div>
+        <h2 class="text-3xl sm:text-4xl font-black">Visibilidad total de tu planta,<br/><span class="text-brand-grad">en tiempo real</span></h2>
+      </div>
+
+      <!-- Dashboard card mock -->
+      <div class="glass rounded-2xl border border-white/8 overflow-hidden" style="box-shadow:0 8px 48px rgba(0,0,0,0.6);">
+        <!-- Top bar -->
+        <div class="flex items-center justify-between px-6 py-3 border-b border-white/5" style="background:rgba(0,0,0,0.4);">
+          <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full bg-red-500/70"></div>
+            <div class="w-3 h-3 rounded-full bg-yellow-500/70"></div>
+            <div class="w-3 h-3 rounded-full bg-green-500/70"></div>
+            <span class="ml-3 text-xs text-gray-500 font-mono">cmms.industrial.app — Panel Principal</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="dot-brand"></div>
+            <span class="text-xs text-gray-500 font-mono">LIVE</span>
+          </div>
+        </div>
+
+        <div class="p-4 sm:p-6 lg:p-8">
+          <!-- KPIs -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <!-- MTTR -->
+            <div class="glass-dark rounded-xl p-4 border card-hover" style="border-color:rgba(var(--brand-rgb),0.2);">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs text-gray-500 uppercase tracking-widest font-mono">MTTR</span>
+                <div class="dot-brand"></div>
+              </div>
+              <div class="text-3xl font-black counter" style="color:var(--brand);">2.4<span class="text-lg">h</span></div>
+              <div class="text-xs text-gray-500 mt-1">Mean Time To Repair</div>
+              <div class="mt-3 flex items-center gap-1 text-xs" style="color:var(--brand);">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
+                —18% vs mes anterior
+              </div>
+            </div>
+            <!-- MTBF -->
+            <div class="glass-dark rounded-xl p-4 border card-hover" style="border-color:rgba(var(--brand-rgb),0.2);">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs text-gray-500 uppercase tracking-widest font-mono">MTBF</span>
+                <div class="dot-brand"></div>
+              </div>
+              <div class="text-3xl font-black counter" style="color:var(--brand);">312<span class="text-lg">h</span></div>
+              <div class="text-xs text-gray-500 mt-1">Mean Time Between Failures</div>
+              <div class="mt-3 flex items-center gap-1 text-xs" style="color:var(--brand);">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                +24h vs mes anterior
+              </div>
+            </div>
+            <!-- Disponibilidad -->
+            <div class="glass-dark rounded-xl p-4 border card-hover" style="border-color:rgba(var(--brand-rgb),0.15);">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs text-gray-500 uppercase tracking-widest font-mono">DISP.</span>
+                <div class="w-2 h-2 rounded-full" style="background:var(--brand); box-shadow:0 0 6px var(--brand);"></div>
+              </div>
+              <div class="text-3xl font-black text-white">98.4<span class="text-lg">%</span></div>
+              <div class="text-xs text-gray-500 mt-1">Disponibilidad del mes</div>
+              <div class="mt-3 h-1.5 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.08);">
+                <div class="h-full rounded-full progress-fill" style="--tw:98.4%; background:var(--brand);"></div>
+              </div>
+            </div>
+            <!-- Alertas -->
+            <div class="glass-dark rounded-xl p-4 border card-hover" style="border-color:rgba(var(--alert-rgb),0.3);">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-xs text-gray-500 uppercase tracking-widest font-mono">ALERTAS</span>
+                <!-- Ping alert dot -->
+                <span class="relative flex items-center justify-center w-4 h-4">
+                  <span class="ping-alert w-2.5 h-2.5 rounded-full inline-block" style="background:var(--alert); position:relative; z-index:1;"></span>
+                </span>
+              </div>
+              <div class="text-3xl font-black" style="color:var(--alert);">3</div>
+              <div class="text-xs text-gray-500 mt-1">Órdenes pendientes</div>
+              <div class="mt-3 flex items-center gap-1 text-xs" style="color:var(--alert);">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                Requieren atención
+              </div>
+            </div>
+          </div>
+
+          <!-- Metros + QR -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+            <!-- Metros counter -->
+            <div class="lg:col-span-2 glass-dark rounded-xl p-5 border" style="border-color:rgba(var(--brand-rgb),0.15);">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="text-sm font-semibold text-white">Metros Producidos vs Próximo Mantenimiento</h3>
+                  <p class="text-xs text-gray-500 mt-0.5 font-mono">Telar #07 — Turno Noche</p>
+                </div>
+                <span class="text-xs px-2 py-1 rounded font-mono whitespace-nowrap" style="background:rgba(var(--brand-rgb),0.12); color:var(--brand);">EN CURSO</span>
+              </div>
+              <div class="mb-4">
+                <div class="flex items-end gap-3">
+                  <span class="text-5xl font-black font-mono" style="color:var(--brand);" id="metroCounter">47,832</span>
+                  <span class="text-sm text-gray-400 mb-2">/ 50,000 m</span>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">Umbral de mantenimiento: <span style="color:var(--alert);">50,000 metros</span></p>
+              </div>
+              <div class="space-y-2">
+                <div class="flex justify-between text-xs">
+                  <span class="text-gray-500">Progreso al límite</span>
+                  <span class="font-mono" style="color:var(--alert);">95.7% — ¡Alerta próxima!</span>
+                </div>
+                <div class="h-3 rounded-full overflow-hidden shimmer" style="background:rgba(255,255,255,0.06);">
+                  <div class="h-full rounded-full progress-fill" style="--tw:95.7%; background:linear-gradient(90deg,var(--brand) 0%,var(--alert) 90%);"></div>
+                </div>
+                <div class="flex justify-between text-xs text-gray-600">
+                  <span>0 m</span>
+                  <span style="color:var(--alert);" class="font-mono">2,168 m restantes</span>
+                  <span>50,000 m</span>
+                </div>
+              </div>
+              <!-- Mini graph -->
+              <div class="mt-4 flex items-end gap-1 h-12">
+                <div class="flex-1 rounded-t" style="height:40%;background:rgba(var(--brand-rgb),0.25);"></div>
+                <div class="flex-1 rounded-t" style="height:55%;background:rgba(var(--brand-rgb),0.3);"></div>
+                <div class="flex-1 rounded-t" style="height:70%;background:rgba(var(--brand-rgb),0.35);"></div>
+                <div class="flex-1 rounded-t" style="height:60%;background:rgba(var(--brand-rgb),0.3);"></div>
+                <div class="flex-1 rounded-t" style="height:80%;background:rgba(var(--brand-rgb),0.4);"></div>
+                <div class="flex-1 rounded-t" style="height:75%;background:rgba(var(--brand-rgb),0.4);"></div>
+                <div class="flex-1 rounded-t" style="height:90%;background:rgba(var(--brand-rgb),0.5);"></div>
+                <div class="flex-1 rounded-t" style="height:85%;background:rgba(var(--brand-rgb),0.5);"></div>
+                <div class="flex-1 rounded-t" style="height:95%;background:rgba(var(--alert-rgb),0.6);border:1px solid rgba(var(--alert-rgb),0.4);"></div>
+                <div class="flex-1 rounded-t" style="height:100%;background:rgba(var(--alert-rgb),0.7);border:1px solid rgba(var(--alert-rgb),0.5);"></div>
+              </div>
+              <div class="flex justify-between text-xs text-gray-600 mt-1">
+                <span>Hace 10 turnos</span>
+                <span style="color:var(--alert);">Hoy</span>
+              </div>
+            </div>
+
+            <!-- QR + Status -->
+            <div class="space-y-4">
+              <!-- QR Button -->
+              <div class="rounded-xl p-px" style="background:linear-gradient(135deg,rgba(var(--brand-rgb),0.6),rgba(var(--brand-rgb),0.1)); box-shadow:0 0 30px rgba(var(--brand-rgb),0.2);">
+                <div class="glass-dark rounded-xl p-4 text-center">
+                  <button class="w-full flex flex-col items-center gap-3 qr-pulse rounded-xl py-5 px-4" style="background:rgba(var(--brand-rgb),0.1); border:1px solid rgba(var(--brand-rgb),0.3);">
+                    <div class="w-16 h-16 rounded-2xl flex items-center justify-center" style="background:rgba(var(--brand-rgb),0.2); box-shadow:0 0 20px rgba(var(--brand-rgb),0.3);">
+                      <svg class="w-9 h-9" style="color:var(--brand);" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M3 3h6v6H3V3zm2 2v2h2V5H5zm8-2h6v6h-6V3zm2 2v2h2V5h-2zM3 13h6v6H3v-6zm2 2v2h2v-2H5zm13-2h2v2h-2v-2zm-4 0h2v2h-2v-2zm2 4h2v2h-2v-2zm-4 0h2v2h-2v-2zm2 4h2v2h-2v-2zm-4-4h2v2h-2v-2zm6-4h2v6h-2v-6z"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <div class="text-base font-bold text-white">Escanear Máquina</div>
+                      <div class="text-xs text-gray-400 mt-1">Historial técnico al instante</div>
+                    </div>
+                  </button>
+                  <p class="text-xs text-gray-500 mt-3 font-mono">Apunta al código QR del activo</p>
+                </div>
+              </div>
+              <!-- Estado máquinas -->
+              <div class="glass-dark rounded-xl p-4 border border-white/5 space-y-3">
+                <h4 class="text-xs text-gray-500 uppercase tracking-widest font-mono">Estado Máquinas</h4>
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-300">Hiladora #03</span>
+                    <span class="text-xs px-2 py-0.5 rounded font-mono" style="background:rgba(var(--brand-rgb),0.1);color:var(--brand);">OK</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-300">Telar #07</span>
+                    <span class="text-xs px-2 py-0.5 rounded font-mono" style="background:rgba(var(--alert-rgb),0.15);color:var(--alert);">ALERTA</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-300">Caldera B2</span>
+                    <span class="text-xs px-2 py-0.5 rounded font-mono" style="background:rgba(var(--brand-rgb),0.1);color:var(--brand);">OK</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-300">Hiladora #08</span>
+                    <span class="text-xs px-2 py-0.5 rounded font-mono" style="background:rgba(var(--brand-rgb),0.1);color:var(--brand);">OK</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- OT Table (landing preview) -->
+          <div class="glass-dark rounded-xl p-4 border border-white/5">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="text-xs text-gray-500 uppercase tracking-widest font-mono">Órdenes de Trabajo Recientes</h4>
+              <button onclick="openLoginModal()" class="text-xs hover:underline transition-colors" style="color:var(--brand);">Ver todas →</button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs">
+                <thead>
+                  <tr class="text-gray-600 border-b border-white/5">
+                    <th class="text-left py-2 pr-4 font-mono">OT #</th>
+                    <th class="text-left py-2 pr-4">Activo</th>
+                    <th class="text-left py-2 pr-4 hidden sm:table-cell">Tipo</th>
+                    <th class="text-left py-2 pr-4 hidden md:table-cell">Técnico</th>
+                    <th class="text-left py-2">Estado</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                  <tr>
+                    <td class="py-2 pr-4 font-mono text-gray-400">OT-0421</td>
+                    <td class="py-2 pr-4 text-gray-300">Telar #07</td>
+                    <td class="py-2 pr-4 text-gray-400 hidden sm:table-cell">Preventivo</td>
+                    <td class="py-2 pr-4 text-gray-400 hidden md:table-cell">M. García</td>
+                    <td class="py-2"><span style="background:rgba(var(--alert-rgb),0.15);color:var(--alert);" class="px-2 py-0.5 rounded font-mono">PENDIENTE</span></td>
+                  </tr>
+                  <tr>
+                    <td class="py-2 pr-4 font-mono text-gray-400">OT-0420</td>
+                    <td class="py-2 pr-4 text-gray-300">Caldera B1</td>
+                    <td class="py-2 pr-4 text-gray-400 hidden sm:table-cell">Correctivo</td>
+                    <td class="py-2 pr-4 text-gray-400 hidden md:table-cell">J. López</td>
+                    <td class="py-2"><span style="background:rgba(var(--brand-rgb),0.1);color:var(--brand);" class="px-2 py-0.5 rounded font-mono">CERRADA</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FUNCIONALIDADES -->
+  <section id="funcionalidades" class="py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full glass border border-white/10 text-xs text-gray-400 mb-4 font-mono">MÓDULOS DEL SISTEMA</div>
+        <h2 class="text-3xl sm:text-4xl font-black">Todo lo que necesita<br/><span class="text-brand-grad">tu planta textil</span></h2>
+        <p class="text-gray-400 mt-4 max-w-xl mx-auto">Tres módulos diseñados para el flujo de trabajo real del técnico industrial.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Gestión -->
+        <div class="glass rounded-2xl p-6 border card-hover" style="border-color:rgba(var(--brand-rgb),0.15);">
+          <div class="w-12 h-12 rounded-xl mb-5 flex items-center justify-center" style="background:rgba(var(--brand-rgb),0.1);">
+            <svg class="w-6 h-6" style="color:var(--brand);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Gestión de Activos</h3>
+          <p class="text-sm text-gray-400 leading-relaxed mb-5">Registro centralizado de hiladoras, telares y calderas. Ciclo de vida completo basado en metros producidos, horas de operación y eventos reales.</p>
+          <ul class="space-y-2">
+            <li class="flex items-center gap-2 text-xs text-gray-400"><div class="w-1.5 h-1.5 rounded-full" style="background:var(--brand);"></div>Hiladoras — Registro por husillo</li>
+            <li class="flex items-center gap-2 text-xs text-gray-400"><div class="w-1.5 h-1.5 rounded-full" style="background:var(--brand);"></div>Telares — KPIs por producción</li>
+            <li class="flex items-center gap-2 text-xs text-gray-400"><div class="w-1.5 h-1.5 rounded-full" style="background:var(--brand);"></div>Calderas — Control de presión</li>
+          </ul>
+          <div class="mt-6 pt-4 border-t border-white/5">
+            <a href="#" class="text-xs font-semibold hover:underline" style="color:var(--brand);">Explorar módulo →</a>
+          </div>
+        </div>
+        <!-- Inventario -->
+        <div class="glass rounded-2xl p-6 border card-hover" style="border-color:rgba(var(--alert-rgb),0.15);">
+          <div class="w-12 h-12 rounded-xl mb-5 flex items-center justify-center" style="background:rgba(var(--alert-rgb),0.1);">
+            <svg class="w-6 h-6" style="color:var(--alert);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Inventario Crítico</h3>
+          <p class="text-sm text-gray-400 leading-relaxed mb-5">Control inteligente de repuestos con alertas de stock mínimo. Asocia cada pieza a un activo y anticipa la reposición antes de que afecte la producción.</p>
+          <ul class="space-y-2">
+            <li class="flex items-center gap-2 text-xs text-gray-400"><div class="w-1.5 h-1.5 rounded-full" style="background:var(--alert);"></div>Stock mínimo configurable</li>
+            <li class="flex items-center gap-2 text-xs text-gray-400"><div class="w-1.5 h-1.5 rounded-full" style="background:var(--alert);"></div>Alertas automáticas de reposición</li>
+            <li class="flex items-center gap-2 text-xs text-gray-400"><div class="w-1.5 h-1.5 rounded-full" style="background:var(--alert);"></div>Trazabilidad de uso por OT</li>
+          </ul>
+          <div class="mt-6 pt-4 border-t border-white/5">
+            <a href="#" class="text-xs font-semibold hover:underline" style="color:var(--alert);">Explorar módulo →</a>
+          </div>
+        </div>
+        <!-- Trazabilidad -->
+        <div class="glass rounded-2xl p-6 border card-hover" style="border-color:rgba(var(--brand-rgb),0.15);">
+          <div class="w-12 h-12 rounded-xl mb-5 flex items-center justify-center" style="background:rgba(var(--brand-rgb),0.1);">
+            <svg class="w-6 h-6" style="color:var(--brand);" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3 3h6v6H3V3zm2 2v2h2V5H5zm8-2h6v6h-6V3zm2 2v2h2V5h-2zM3 13h6v6H3v-6zm2 2v2h2v-2H5zm13-2h2v2h-2v-2zm-4 0h2v2h-2v-2zm2 4h2v2h-2v-2zm-4 0h2v2h-2v-2zm2 4h2v2h-2v-2zm-4-4h2v2h-2v-2zm6-4h2v6h-2v-6z"/>
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-white mb-2">Trazabilidad QR</h3>
+          <p class="text-sm text-gray-400 leading-relaxed mb-5">Historial técnico completo de cada activo al instante. El técnico escanea el código QR desde su celular y accede a todo: OTs, repuestos, fallas y manuales.</p>
+          <ul class="space-y-2">
+            <li class="flex items-center gap-2 text-xs text-gray-400"><div class="w-1.5 h-1.5 rounded-full" style="background:var(--brand);"></div>QR único por activo</li>
+            <li class="flex items-center gap-2 text-xs text-gray-400"><div class="w-1.5 h-1.5 rounded-full" style="background:var(--brand);"></div>A pie de máquina, sin papeles</li>
+            <li class="flex items-center gap-2 text-xs text-gray-400"><div class="w-1.5 h-1.5 rounded-full" style="background:var(--brand);"></div>Historial completo offline-ready</li>
+          </ul>
+          <div class="mt-6 pt-4 border-t border-white/5">
+            <a href="#" class="text-xs font-semibold hover:underline" style="color:var(--brand);">Explorar módulo →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CALCULADORA ROI -->
+  <section id="calculadora-roi" class="py-20 relative overflow-hidden">
+    <div class="absolute inset-0 grid-bg opacity-20 pointer-events-none"></div>
+    <div class="absolute inset-0 pointer-events-none">
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(var(--brand-rgb),0.07),transparent 65%);"></div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <!-- Header -->
+      <div class="text-center mb-12 max-w-3xl mx-auto">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full glass border border-white/10 text-xs text-gray-400 mb-4 font-mono">CALCULADORA DE ROI</div>
+        <h2 class="text-3xl sm:text-4xl font-black mb-4">No adivines tu rentabilidad.</h2>
+        <p class="text-gray-400 leading-relaxed">Calcula cuánto estás dejando de ganar por cada minuto que tus máquinas están en silencio.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- LEFT: Sliders -->
+        <div class="glass rounded-2xl p-6 border" style="border-color:rgba(var(--brand-rgb),0.15);">
+          <h3 class="text-sm font-bold text-white mb-6 uppercase tracking-widest font-mono">Variables de tu operación</h3>
+          <div class="space-y-7">
+            <!-- Slider 1 -->
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <label class="text-xs text-gray-400">Costo de Hora de Paro</label>
+                <span class="text-sm font-bold font-mono" style="color:var(--brand);">$<span id="roi-val-paro">2,000</span></span>
+              </div>
+              <input type="range" id="roi-paro" min="500" max="10000" step="100" value="2000" class="roi-slider" oninput="updateROI()"/>
+              <div class="flex justify-between text-xs text-gray-600 mt-1"><span>$500</span><span>$10,000</span></div>
+            </div>
+            <!-- Slider 2 -->
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <label class="text-xs text-gray-400">Fallas No Programadas / Mes</label>
+                <span class="text-sm font-bold font-mono" style="color:var(--brand);"><span id="roi-val-fallas">4</span> fallas</span>
+              </div>
+              <input type="range" id="roi-fallas" min="0" max="20" step="1" value="4" class="roi-slider" oninput="updateROI()"/>
+              <div class="flex justify-between text-xs text-gray-600 mt-1"><span>0</span><span>20</span></div>
+            </div>
+            <!-- Slider 3 -->
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <label class="text-xs text-gray-400">Técnicos en Planta</label>
+                <span class="text-sm font-bold font-mono" style="color:var(--brand);"><span id="roi-val-tecnicos">8</span> técnicos</span>
+              </div>
+              <input type="range" id="roi-tecnicos" min="1" max="50" step="1" value="8" class="roi-slider" oninput="updateROI()"/>
+              <div class="flex justify-between text-xs text-gray-600 mt-1"><span>1</span><span>50</span></div>
+            </div>
+            <!-- Slider 4 -->
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <label class="text-xs text-gray-400">Valor de Activos Críticos</label>
+                <span class="text-sm font-bold font-mono" style="color:var(--brand);">$<span id="roi-val-activos">500k</span></span>
+              </div>
+              <input type="range" id="roi-activos" min="50000" max="2000000" step="50000" value="500000" class="roi-slider" oninput="updateROI()"/>
+              <div class="flex justify-between text-xs text-gray-600 mt-1"><span>$50k</span><span>$2M</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Results dashboard -->
+        <div class="space-y-4">
+          <!-- Ahorro Potencial Anual -->
+          <div class="glass-dark rounded-2xl p-6 border" style="border-color:rgba(var(--brand-rgb),0.25); box-shadow:0 0 30px rgba(var(--brand-rgb),0.08);">
+            <p class="text-xs text-gray-500 uppercase tracking-widest font-mono mb-2">Ahorro Potencial Anual</p>
+            <div class="text-5xl font-black font-mono" style="color:var(--brand);" id="roi-ahorro">$192,000</div>
+            <p class="text-xs text-gray-500 mt-2">Estimado con reducción del 40% de fallas no programadas</p>
+          </div>
+
+          <!-- Comparativa Reactivo vs Predictivo -->
+          <div class="glass rounded-2xl p-5 border border-white/8">
+            <p class="text-xs text-gray-500 uppercase tracking-widest font-mono mb-4">Impacto en tu operación</p>
+            <div class="space-y-3">
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="text-gray-400">Mantenimiento Reactivo (actual)</span>
+                  <span class="font-mono text-red-400" id="roi-bar-reactivo-label">$480,000/año</span>
+                </div>
+                <div class="h-3 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.06);">
+                  <div id="roi-bar-reactivo" class="h-full rounded-full transition-all duration-500" style="width:100%; background:linear-gradient(90deg,#6b7280,#ef4444);"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span style="color:var(--brand);">Con CMMS Predictivo</span>
+                  <span class="font-mono" style="color:var(--brand);" id="roi-bar-cmms-label">$288,000/año</span>
+                </div>
+                <div class="h-3 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.06);">
+                  <div id="roi-bar-cmms" class="h-full rounded-full transition-all duration-500" style="width:60%; background:linear-gradient(90deg,var(--brand),#ffb380);"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Breakeven + Horas recuperadas -->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="glass-dark rounded-xl p-4 border" style="border-color:rgba(var(--brand-rgb),0.2);">
+              <p class="text-xs text-gray-500 font-mono mb-1">Breakeven</p>
+              <div class="text-2xl font-black" style="color:var(--brand);" id="roi-breakeven">2.4</div>
+              <p class="text-xs text-gray-500">meses para recuperar inversión</p>
+            </div>
+            <div class="glass-dark rounded-xl p-4 border" style="border-color:rgba(var(--brand-rgb),0.2);">
+              <p class="text-xs text-gray-500 font-mono mb-1">Horas recuperadas</p>
+              <div class="text-2xl font-black text-white" id="roi-horas">384h</div>
+              <p class="text-xs text-gray-500">de producción extra / año</p>
+            </div>
+          </div>
+
+          <!-- CTA Contextual + Lead magnet -->
+          <div class="rounded-xl p-4" style="background:rgba(var(--brand-rgb),0.08); border:1px solid rgba(var(--brand-rgb),0.2);">
+            <p class="text-xs text-gray-300 mb-3 leading-relaxed">
+              Has identificado un ahorro potencial de <span class="font-bold font-mono" style="color:var(--brand);" id="roi-cta-amount">$192,000</span>.
+              ¿Quieres que nuestros especialistas validen este plan contigo?
+            </p>
+            <button onclick="document.getElementById('contacto').scrollIntoView({behavior:'smooth'})"
+              class="w-full py-2.5 rounded-lg text-xs font-bold transition-all hover:scale-[1.02]"
+              style="background:linear-gradient(135deg,#ff8235,#e06520);color:white;box-shadow:0 0 16px rgba(255,130,53,0.3);">
+              Descargar Informe de ROI en PDF →
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EQUIPO -->
+  <section id="equipo" class="py-16 relative overflow-hidden">
+    <div class="absolute inset-0 grid-bg opacity-20 pointer-events-none"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div class="text-center mb-12">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full glass border border-white/10 text-xs text-gray-400 mb-4 font-mono">EQUIPO</div>
+        <h2 class="text-3xl sm:text-4xl font-black">Construido por quienes<br/><span class="text-brand-grad">conocen la planta</span></h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+        <!-- Card 1 -->
+        <div class="glass rounded-2xl p-6 border card-hover" style="border-color:rgba(var(--brand-rgb),0.15);">
+          <div class="w-12 h-12 rounded-xl mb-5 flex items-center justify-center" style="background:rgba(var(--brand-rgb),0.12);">
+            <svg class="w-6 h-6" style="color:var(--brand);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/>
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-white mb-1">Gustavo Gallarday</h3>
+          <p class="text-xs text-gray-500 mb-1">Especialista en Bases de Datos y Software BCRP</p>
+          <p class="text-xs font-mono" style="color:var(--brand);">BCRP · Infraestructura Crítica</p>
+        </div>
+        <!-- Card 2 -->
+        <div class="glass rounded-2xl p-6 border card-hover" style="border-color:rgba(var(--brand-rgb),0.15);">
+          <div class="w-12 h-12 rounded-xl mb-5 flex items-center justify-center" style="background:rgba(var(--brand-rgb),0.12);">
+            <svg class="w-6 h-6" style="color:var(--brand);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-white mb-1">Daniel Rodriguez</h3>
+          <p class="text-xs text-gray-500 mb-1">Jefe de Mantenimiento Industrial y Consultor Particular</p>
+          <p class="text-xs font-mono" style="color:var(--brand);">Estratega en Continuidad Operativa y Reducción de Costos por Paros No Programados</p>
+        </div>
+      </div>
+      <!-- Bridge statement -->
+      <div class="mt-10 rounded-2xl p-6 text-center" style="background:linear-gradient(135deg,rgba(var(--brand-rgb),0.07),rgba(0,0,0,0.4)); border:1px solid rgba(var(--brand-rgb),0.15);">
+        <p class="text-sm sm:text-base text-gray-300 leading-relaxed max-w-2xl mx-auto">
+          <span class="font-bold text-white">CMMS</span> es el puente entre la
+          <span style="color:var(--brand);" class="font-semibold">inteligencia del dato</span> y la
+          <span class="font-semibold text-white">realidad del técnico en planta</span>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA FINAL / CONTACTO -->
+  <section id="contacto" class="py-20 relative overflow-hidden">
+    <div class="absolute inset-0 pointer-events-none">
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full blur-3xl" style="background:radial-gradient(circle,rgba(var(--brand-rgb),0.08),transparent 70%);"></div>
+    </div>
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+        <!-- Left: CTA -->
+        <div>
+          <h2 class="text-3xl sm:text-4xl font-black mb-4">Listo para transformar<br/><span class="text-brand-grad">tu mantenimiento industrial</span></h2>
+          <p class="text-gray-400 mb-8">Comienza hoy. Sin hardware adicional. Solo tu celular y los activos de tu planta.</p>
+          <div class="flex flex-col sm:flex-row gap-4">
+            <button onclick="openLoginModal()"
+              class="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-bold transition-all hover:scale-105"
+              style="background:linear-gradient(135deg,#ff8235,#e06520);color:white;box-shadow:0 0 30px rgba(255,130,53,0.4);">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+              Iniciar Sesión
+            </button>
+            <a href="#dashboard" class="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold glass border border-white/10 hover:border-white/20 transition-all">
+              Ver Demo en vivo
+            </a>
+          </div>
+        </div>
+        <!-- Right: Contact Form -->
+        <div class="glass rounded-2xl p-6 border" id="contactCard" style="border-color:rgba(var(--brand-rgb),0.15);">
+          <!-- Form state -->
+          <div id="contactFormWrap">
+            <h3 class="text-base font-bold text-white mb-1">Solicitar información</h3>
+            <p class="text-xs text-gray-500 mb-5">Te contactamos en menos de 24 horas.</p>
+            <form id="contactForm" onsubmit="handleContactForm(event)" class="space-y-4">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs text-gray-400 mb-1.5">Nombre completo</label>
+                  <input type="text" class="form-input" placeholder="Juan Pérez" required />
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-400 mb-1.5">Empresa</label>
+                  <input type="text" class="form-input" placeholder="Textil S.A." required />
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-400 mb-1.5">Cargo</label>
+                <input type="text" class="form-input" placeholder="Jefe de Mantenimiento" required />
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs text-gray-400 mb-1.5">Correo Corporativo</label>
+                  <input type="email" class="form-input" placeholder="ejemplo@empresa.com" required />
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-400 mb-1.5">WhatsApp / Teléfono</label>
+                  <input type="tel" class="form-input" placeholder="+51 987 654 321" required />
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs text-gray-400 mb-1.5">Número de activos</label>
+                <select class="form-input" required style="appearance:none;">
+                  <option value="" style="background:#111;">Seleccionar rango…</option>
+                  <option value="1-10" style="background:#111;">1 – 10 activos</option>
+                  <option value="11-50" style="background:#111;">11 – 50 activos</option>
+                  <option value="51-200" style="background:#111;">51 – 200 activos</option>
+                  <option value="200+" style="background:#111;">200+ activos</option>
+                </select>
+              </div>
+              <button type="submit" class="w-full py-3 rounded-xl font-bold text-sm transition-all hover:scale-[1.02]"
+                style="background:linear-gradient(135deg,#ff8235,#e06520);color:white;box-shadow:0 0 20px rgba(255,130,53,0.3);">
+                Enviar solicitud →
+              </button>
+            </form>
+          </div>
+          <!-- Success state (hidden by default) -->
+          <div id="contactSuccess" class="hidden flex-col items-center justify-center text-center py-8 px-4">
+            <div class="w-20 h-20 rounded-full flex items-center justify-center mb-6" style="background:rgba(var(--brand-rgb),0.15); box-shadow:0 0 40px rgba(var(--brand-rgb),0.25);">
+              <svg class="w-10 h-10" style="color:var(--brand);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-black text-white mb-3">¡Propuesta en marcha!</h3>
+            <p class="text-sm text-gray-300 leading-relaxed max-w-xs mx-auto">
+              <span class="font-semibold text-white">Gustavo</span> o <span class="font-semibold text-white">Daniel</span> te contactarán personalmente en menos de
+              <span class="font-bold" style="color:var(--brand);">24 horas</span>.
+            </p>
+            <div class="mt-6 text-xs text-gray-600 font-mono">Revisa tu WhatsApp y correo corporativo.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-white/5 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-bold text-white">CMMS</span>
+        <span class="text-xs text-gray-600 ml-2">Mantenimiento Predictivo Industrial</span>
+      </div>
+      <p class="text-xs text-gray-600">© 2024 CMMS — Industria Textil</p>
+    </div>
+  </footer>
+</div><!-- end landingPage -->
+
+
+<!-- ============================================================ -->
+<!-- APP PAGE (Post-login Dashboard) -->
+<!-- ============================================================ -->
+<div id="appPage" class="fixed inset-0 flex flex-col" style="background:#0a0a0a;">
+
+  <!-- App Navbar -->
+  <nav class="flex-shrink-0 border-b border-white/5 z-40" style="background:rgba(0,0,0,0.8); backdrop-filter:blur(16px);">
+    <div class="max-w-full px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-4">
+          <!-- Logo -->
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:linear-gradient(135deg,#ff8235,#e06520);">
+              <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M13.5 2c-5.621 0-10.211 4.443-10.475 10H1l4 4 4-4H7.025C7.29 8.562 10.065 6 13.5 6c3.584 0 6.5 2.916 6.5 6.5S17.084 19 13.5 19c-1.993 0-3.776-.906-4.992-2.339L7.101 18.07C8.694 19.907 11.013 21 13.5 21c4.687 0 8.5-3.813 8.5-8.5S18.187 2 13.5 2z"/>
+              </svg>
+            </div>
+            <span class="font-bold text-white tracking-tight">CMMS</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <!-- User info -->
+          <div class="hidden sm:flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style="background:rgba(255,130,53,0.2); color:var(--brand);">A</div>
+            <div class="text-right">
+              <div class="text-xs font-medium text-white leading-none">Admin</div>
+              <div class="text-xs text-gray-500 leading-none mt-0.5">TextilSmart</div>
+            </div>
+          </div>
+          <!-- Logout -->
+          <button onclick="handleLogout()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs glass border border-white/10 hover:border-white/20 transition-all text-gray-400 hover:text-white">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            Salir
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar" id="appTabBar">
+    <button class="tab-btn active" id="tabBtn-panel"      onclick="showTab('panel')">Panel</button>
+    <button class="tab-btn"        id="tabBtn-activos"    onclick="showTab('activos')">Activos</button>
+    <button class="tab-btn"        id="tabBtn-ots"        onclick="showTab('ots')">OTs</button>
+    <button class="tab-btn"        id="tabBtn-inventario" onclick="showTab('inventario')">Inventario</button>
+    <button class="tab-btn"        id="tabBtn-qr"         onclick="showTab('qr')">QR</button>
+    <button class="tab-btn"        id="tabBtn-planta"     onclick="showTab('planta')">Planta</button>
+  </div>
+
+  <!-- App Content -->
+  <div id="appContent" class="flex-1 overflow-y-auto">
+    <!-- TAB: PANEL -->
+    <div id="tab-panel" class="tab-content active">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+      <!-- Welcome row -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 class="text-xl font-black text-white">Panel de Control Industrial</h1>
+          <p class="text-xs text-gray-500 mt-1 font-mono">Última actualización: <span id="lastUpdate"></span></p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2 text-xs font-mono" style="color:var(--brand);">
+            <div class="dot-brand"></div>
+            LIVE
+          </div>
+          <button class="px-3 py-1.5 rounded-lg text-xs font-medium glass border border-white/10 hover:border-white/20 transition-all text-gray-300">
+            + Nueva OT
+          </button>
+        </div>
+      </div>
+
+      <!-- IA PREDICTIVA WIDGET -->
+      <div class="ia-widget rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+        <div class="flex items-center gap-3 flex-shrink-0">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:rgba(var(--brand-rgb),0.2);">
+            <svg class="w-5 h-5" style="color:var(--brand);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold uppercase tracking-widest font-mono" style="color:var(--brand);">IA Predictiva</span>
+              <span class="relative flex items-center justify-center w-3 h-3">
+                <span class="ping-alert w-2 h-2 rounded-full inline-block" style="background:var(--alert); position:relative; z-index:1;"></span>
+              </span>
+            </div>
+            <p class="text-sm font-semibold text-white mt-0.5">Alerta de mantenimiento preventivo</p>
+          </div>
+        </div>
+        <div class="flex-1 sm:border-l sm:border-white/10 sm:pl-4">
+          <p class="text-sm text-gray-300">
+            Se recomienda <span class="font-semibold text-white">revisión de faja</span> en
+            <span class="font-mono text-sm" style="color:var(--brand);">Telar #07</span>
+            en los próximos <span class="font-bold" style="color:var(--alert);">500 metros</span> de producción.
+          </p>
+          <p class="text-xs text-gray-500 mt-1">Modelo basado en 47,839 m acumulados · Confianza: 94%</p>
+        </div>
+        <div class="flex sm:flex-col gap-2 flex-shrink-0">
+          <button class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:scale-105" style="background:var(--brand); color:white;">Crear OT</button>
+          <button class="px-3 py-1.5 rounded-lg text-xs font-medium glass border border-white/10 text-gray-400 hover:text-white transition-all">Ignorar</button>
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- MTTR -->
+        <div class="glass-dark rounded-xl p-4 border card-hover" style="border-color:rgba(var(--brand-rgb),0.2);">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs text-gray-500 uppercase tracking-widest font-mono">MTTR</span>
+            <div class="dot-brand"></div>
+          </div>
+          <div class="text-3xl font-black" style="color:var(--brand);">2.4<span class="text-lg">h</span></div>
+          <div class="text-xs text-gray-500 mt-1">Mean Time To Repair</div>
+          <div class="mt-3 flex items-center gap-1 text-xs" style="color:var(--brand);">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
+            —18% vs mes anterior
+          </div>
+        </div>
+        <!-- MTBF -->
+        <div class="glass-dark rounded-xl p-4 border card-hover" style="border-color:rgba(var(--brand-rgb),0.2);">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs text-gray-500 uppercase tracking-widest font-mono">MTBF</span>
+            <div class="dot-brand"></div>
+          </div>
+          <div class="text-3xl font-black" style="color:var(--brand);">312<span class="text-lg">h</span></div>
+          <div class="text-xs text-gray-500 mt-1">Mean Time Between Failures</div>
+          <div class="mt-3 flex items-center gap-1 text-xs" style="color:var(--brand);">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            +24h vs mes anterior
+          </div>
+        </div>
+        <!-- Disponibilidad -->
+        <div class="glass-dark rounded-xl p-4 border card-hover" style="border-color:rgba(var(--brand-rgb),0.15);">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs text-gray-500 uppercase tracking-widest font-mono">DISP.</span>
+            <div class="w-2 h-2 rounded-full" style="background:var(--brand); box-shadow:0 0 6px var(--brand);"></div>
+          </div>
+          <div class="text-3xl font-black text-white">98.4<span class="text-lg">%</span></div>
+          <div class="text-xs text-gray-500 mt-1">Disponibilidad del mes</div>
+          <div class="mt-3 h-1.5 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.08);">
+            <div class="h-full rounded-full progress-fill" style="--tw:98.4%; background:var(--brand);"></div>
+          </div>
+        </div>
+        <!-- Alertas -->
+        <div class="glass-dark rounded-xl p-4 border card-hover" style="border-color:rgba(var(--alert-rgb),0.3);">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs text-gray-500 uppercase tracking-widest font-mono">ALERTAS</span>
+            <span class="relative flex items-center justify-center w-4 h-4">
+              <span class="ping-alert w-2.5 h-2.5 rounded-full inline-block" style="background:var(--alert); position:relative; z-index:1;"></span>
+            </span>
+          </div>
+          <div class="text-3xl font-black" style="color:var(--alert);" id="alertCount">3</div>
+          <div class="text-xs text-gray-500 mt-1">Órdenes pendientes</div>
+          <div class="mt-3 flex items-center gap-1 text-xs" style="color:var(--alert);">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            Requieren atención
+          </div>
+        </div>
+      </div>
+
+      <!-- Metros + QR -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Metros -->
+        <div class="lg:col-span-2 glass-dark rounded-xl p-5 border" style="border-color:rgba(var(--brand-rgb),0.15);">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-sm font-semibold text-white">Metros Producidos vs Próximo Mantenimiento</h3>
+              <p class="text-xs text-gray-500 mt-0.5 font-mono">Telar #07 — Turno Noche</p>
+            </div>
+            <span class="text-xs px-2 py-1 rounded font-mono whitespace-nowrap" style="background:rgba(var(--brand-rgb),0.12); color:var(--brand);">EN CURSO</span>
+          </div>
+          <div class="mb-4">
+            <div class="flex items-end gap-3">
+              <span class="text-5xl font-black font-mono" style="color:var(--brand);" id="appMetroCounter">47,832</span>
+              <span class="text-sm text-gray-400 mb-2">/ 50,000 m</span>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">Umbral de mantenimiento: <span style="color:var(--alert);">50,000 metros</span></p>
+          </div>
+          <div class="space-y-2">
+            <div class="flex justify-between text-xs">
+              <span class="text-gray-500">Progreso al límite</span>
+              <span class="font-mono" style="color:var(--alert);">95.7% — ¡Alerta próxima!</span>
+            </div>
+            <div class="h-3 rounded-full overflow-hidden shimmer" style="background:rgba(255,255,255,0.06);">
+              <div class="h-full rounded-full progress-fill" style="--tw:95.7%; background:linear-gradient(90deg,var(--brand) 0%,var(--alert) 90%);"></div>
+            </div>
+            <div class="flex justify-between text-xs text-gray-600">
+              <span>0 m</span>
+              <span style="color:var(--alert);" class="font-mono">2,168 m restantes</span>
+              <span>50,000 m</span>
+            </div>
+          </div>
+          <div class="mt-4 flex items-end gap-1 h-12">
+            <div class="flex-1 rounded-t" style="height:40%;background:rgba(var(--brand-rgb),0.25);"></div>
+            <div class="flex-1 rounded-t" style="height:55%;background:rgba(var(--brand-rgb),0.3);"></div>
+            <div class="flex-1 rounded-t" style="height:70%;background:rgba(var(--brand-rgb),0.35);"></div>
+            <div class="flex-1 rounded-t" style="height:60%;background:rgba(var(--brand-rgb),0.3);"></div>
+            <div class="flex-1 rounded-t" style="height:80%;background:rgba(var(--brand-rgb),0.4);"></div>
+            <div class="flex-1 rounded-t" style="height:75%;background:rgba(var(--brand-rgb),0.4);"></div>
+            <div class="flex-1 rounded-t" style="height:90%;background:rgba(var(--brand-rgb),0.5);"></div>
+            <div class="flex-1 rounded-t" style="height:85%;background:rgba(var(--brand-rgb),0.5);"></div>
+            <div class="flex-1 rounded-t" style="height:95%;background:rgba(var(--alert-rgb),0.6);border:1px solid rgba(var(--alert-rgb),0.4);"></div>
+            <div class="flex-1 rounded-t" style="height:100%;background:rgba(var(--alert-rgb),0.7);border:1px solid rgba(var(--alert-rgb),0.5);"></div>
+          </div>
+          <div class="flex justify-between text-xs text-gray-600 mt-1">
+            <span>Hace 10 turnos</span>
+            <span style="color:var(--alert);">Hoy</span>
+          </div>
+        </div>
+
+        <!-- QR + Estado -->
+        <div class="space-y-4">
+          <div class="rounded-xl p-px" style="background:linear-gradient(135deg,rgba(var(--brand-rgb),0.6),rgba(var(--brand-rgb),0.1)); box-shadow:0 0 30px rgba(var(--brand-rgb),0.2);">
+            <div class="glass-dark rounded-xl p-4 text-center">
+              <button class="w-full flex flex-col items-center gap-3 qr-pulse rounded-xl py-5 px-4" style="background:rgba(var(--brand-rgb),0.1); border:1px solid rgba(var(--brand-rgb),0.3);">
+                <div class="w-16 h-16 rounded-2xl flex items-center justify-center" style="background:rgba(var(--brand-rgb),0.2); box-shadow:0 0 20px rgba(var(--brand-rgb),0.3);">
+                  <svg class="w-9 h-9" style="color:var(--brand);" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 3h6v6H3V3zm2 2v2h2V5H5zm8-2h6v6h-6V3zm2 2v2h2V5h-2zM3 13h6v6H3v-6zm2 2v2h2v-2H5zm13-2h2v2h-2v-2zm-4 0h2v2h-2v-2zm2 4h2v2h-2v-2zm-4 0h2v2h-2v-2zm2 4h2v2h-2v-2zm-4-4h2v2h-2v-2zm6-4h2v6h-2v-6z"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="text-base font-bold text-white">Escanear Máquina</div>
+                  <div class="text-xs text-gray-400 mt-1">Historial técnico al instante</div>
+                </div>
+              </button>
+              <p class="text-xs text-gray-500 mt-3 font-mono">Apunta al código QR del activo</p>
+            </div>
+          </div>
+          <div class="glass-dark rounded-xl p-4 border border-white/5 space-y-3">
+            <h4 class="text-xs text-gray-500 uppercase tracking-widest font-mono">Estado Máquinas</h4>
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-gray-300">Hiladora #03</span>
+                <span class="text-xs px-2 py-0.5 rounded font-mono" style="background:rgba(var(--brand-rgb),0.1);color:var(--brand);">OK</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-gray-300">Telar #07</span>
+                <span class="text-xs px-2 py-0.5 rounded font-mono" style="background:rgba(var(--alert-rgb),0.15);color:var(--alert);">ALERTA</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-gray-300">Caldera B2</span>
+                <span class="text-xs px-2 py-0.5 rounded font-mono" style="background:rgba(var(--brand-rgb),0.1);color:var(--brand);">OK</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-gray-300">Hiladora #08</span>
+                <span class="text-xs px-2 py-0.5 rounded font-mono" style="background:rgba(var(--brand-rgb),0.1);color:var(--brand);">OK</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE OT TABLE -->
+      <div class="glass-dark rounded-xl border border-white/5 overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-white/5">
+          <h4 class="text-sm font-semibold text-white">Órdenes de Trabajo</h4>
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-gray-500 font-mono">Clic en estado para cambiar</span>
+            <span class="relative flex items-center justify-center w-3 h-3">
+              <span class="ping-alert w-2 h-2 rounded-full" style="background:var(--alert); position:relative; z-index:1;"></span>
+            </span>
+            <span class="text-xs font-mono" style="color:var(--alert);" id="pendingCount">2 pendientes</span>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs">
+            <thead>
+              <tr class="border-b border-white/5" style="background:rgba(0,0,0,0.3);">
+                <th class="text-left py-3 px-6 text-gray-500 font-mono font-normal">OT #</th>
+                <th class="text-left py-3 px-4 text-gray-500 font-normal">Activo</th>
+                <th class="text-left py-3 px-4 text-gray-500 font-normal hidden sm:table-cell">Tipo</th>
+                <th class="text-left py-3 px-4 text-gray-500 font-normal hidden md:table-cell">Técnico</th>
+                <th class="text-left py-3 px-4 text-gray-500 font-normal hidden lg:table-cell">Prioridad</th>
+                <th class="text-left py-3 px-4 text-gray-500 font-normal">Estado</th>
+              </tr>
+            </thead>
+            <tbody id="otTable" class="divide-y divide-white/5">
+              <!-- Rows injected by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- end content -->
+    </div><!-- end tab-panel -->
+
+    <!-- TAB: ACTIVOS -->
+    <div id="tab-activos" class="tab-content">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <h2 class="text-lg font-black text-white">Gestión de Activos</h2>
+          <div class="flex flex-wrap gap-2" id="activosFilterPills">
+            <button class="filter-pill active" onclick="filterActivos('Todos')">Todos</button>
+            <button class="filter-pill" onclick="filterActivos('Telar')">Telares</button>
+            <button class="filter-pill" onclick="filterActivos('Hiladora')">Hiladoras</button>
+            <button class="filter-pill" onclick="filterActivos('Caldera')">Calderas</button>
+          </div>
+        </div>
+        <div class="glass-dark rounded-2xl border border-white/5 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr style="background:rgba(0,0,0,0.3);" class="border-b border-white/5">
+                  <th class="text-left py-3 px-4 text-gray-500 font-mono font-normal">ID</th>
+                  <th class="text-left py-3 px-4 text-gray-500 font-normal">Nombre</th>
+                  <th class="text-left py-3 px-4 text-gray-500 font-normal hidden sm:table-cell">Tipo</th>
+                  <th class="text-left py-3 px-4 text-gray-500 font-normal hidden md:table-cell">Ubicación</th>
+                  <th class="text-left py-3 px-4 text-gray-500 font-normal hidden lg:table-cell">Horas Op.</th>
+                  <th class="text-left py-3 px-4 text-gray-500 font-normal hidden lg:table-cell">Metros Acum.</th>
+                  <th class="text-left py-3 px-4 text-gray-500 font-normal">Salud</th>
+                </tr>
+              </thead>
+              <tbody id="activosTable" class="divide-y divide-white/5"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: OTs -->
+    <div id="tab-ots" class="tab-content">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <h2 class="text-lg font-black text-white">Órdenes de Trabajo</h2>
+          <div class="flex flex-wrap gap-2" id="otsFilterPills">
+            <button class="filter-pill active" onclick="filterOTs('Todas')">Todas</button>
+            <button class="filter-pill" onclick="filterOTs('Alta')">Alta</button>
+            <button class="filter-pill" onclick="filterOTs('Media')">Media</button>
+            <button class="filter-pill" onclick="filterOTs('Baja')">Baja</button>
+          </div>
+        </div>
+        <div class="glass-dark rounded-2xl border border-white/5 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr style="background:rgba(0,0,0,0.3);" class="border-b border-white/5">
+                  <th class="text-left py-3 px-4 text-gray-500 font-mono font-normal">OT #</th>
+                  <th class="text-left py-3 px-4 text-gray-500 font-normal">Activo</th>
+                  <th class="text-left py-3 px-4 text-gray-500 font-normal hidden sm:table-cell">Tipo</th>
+                  <th class="text-left py-3 px-4 text-gray-500 font-normal hidden md:table-cell">Técnico</th>
+                  <th class="text-left py-3 px-4 text-gray-500 font-normal">Prioridad</th>
+                  <th class="text-left py-3 px-4 text-gray-500 font-normal hidden lg:table-cell">Fecha</th>
+                  <th class="text-left py-3 px-4 text-gray-500 font-normal">Estado</th>
+                </tr>
+              </thead>
+              <tbody id="otsTabTable" class="divide-y divide-white/5"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: INVENTARIO -->
+    <div id="tab-inventario" class="tab-content">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <h2 class="text-lg font-black text-white mb-5">Inventario de Repuestos</h2>
+        <div class="grid grid-cols-3 gap-4 mb-6" id="invSummary">
+          <div class="glass-dark rounded-xl p-4 border border-white/5 text-center">
+            <div class="text-2xl font-black text-white">8</div>
+            <div class="text-xs text-gray-500 mt-1">Total SKUs</div>
+          </div>
+          <div class="glass-dark rounded-xl p-4 border text-center" style="border-color:rgba(var(--brand-rgb),0.25);">
+            <div class="text-2xl font-black" style="color:var(--brand);" id="invCritCount">3</div>
+            <div class="text-xs text-gray-500 mt-1">Críticos</div>
+          </div>
+          <div class="glass-dark rounded-xl p-4 border border-white/5 text-center">
+            <div class="text-2xl font-black text-white">2</div>
+            <div class="text-xs text-gray-500 mt-1">En Tránsito</div>
+          </div>
+        </div>
+        <div class="glass-dark rounded-2xl border border-white/5 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+              <thead>
+                <tr style="background:rgba(0,0,0,0.3);" class="border-b border-white/5">
+                  <th class="text-left py-3 px-4 text-gray-500 font-mono font-normal">Código</th>
+                  <th class="text-left py-3 px-4 text-gray-500 font-normal">Descripción</th>
+                  <th class="text-left py-3 px-4 text-gray-500 font-normal hidden sm:table-cell">Unidad</th>
+                  <th class="text-left py-3 px-4 text-gray-500 font-normal">Stock</th>
+                  <th class="text-left py-3 px-4 text-gray-500 font-normal hidden md:table-cell">Mínimo</th>
+                  <th class="text-left py-3 px-4 text-gray-500 font-normal">Estado</th>
+                </tr>
+              </thead>
+              <tbody id="inventarioTable" class="divide-y divide-white/5"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: QR -->
+    <div id="tab-qr" class="tab-content">
+      <div class="max-w-lg mx-auto px-4 sm:px-6 py-8">
+        <h2 class="text-lg font-black text-white mb-6 text-center">Escáner QR de Activos</h2>
+        <!-- QR Viewer -->
+        <div class="glass-dark rounded-2xl p-6 border mb-6" style="border-color:rgba(var(--brand-rgb),0.2);">
+          <div class="relative mx-auto" style="width:220px; height:220px;">
+            <!-- Corner brackets -->
+            <div style="position:absolute;top:0;left:0;width:28px;height:28px;border-top:2px solid var(--brand);border-left:2px solid var(--brand);border-radius:4px 0 0 0;"></div>
+            <div style="position:absolute;top:0;right:0;width:28px;height:28px;border-top:2px solid var(--brand);border-right:2px solid var(--brand);border-radius:0 4px 0 0;"></div>
+            <div style="position:absolute;bottom:0;left:0;width:28px;height:28px;border-bottom:2px solid var(--brand);border-left:2px solid var(--brand);border-radius:0 0 0 4px;"></div>
+            <div style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-bottom:2px solid var(--brand);border-right:2px solid var(--brand);border-radius:0 0 4px 0;"></div>
+            <!-- QR icon center -->
+            <div class="absolute inset-4 flex items-center justify-center rounded-xl" style="background:rgba(0,0,0,0.5);">
+              <svg class="w-16 h-16 opacity-20" style="color:var(--brand);" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 3h6v6H3V3zm2 2v2h2V5H5zm8-2h6v6h-6V3zm2 2v2h2V5h-2zM3 13h6v6H3v-6zm2 2v2h2v-2H5zm13-2h2v2h-2v-2zm-4 0h2v2h-2v-2zm2 4h2v2h-2v-2zm-4 0h2v2h-2v-2zm2 4h2v2h-2v-2zm-4-4h2v2h-2v-2zm6-4h2v6h-2v-6z"/>
+              </svg>
+            </div>
+            <!-- Scan line -->
+            <div class="scan-line"></div>
+          </div>
+          <p class="text-center text-xs text-gray-500 mt-4 font-mono">Apunta la cámara al código QR del activo</p>
+        </div>
+        <button onclick="mockScan()" class="w-full py-3 rounded-xl font-bold text-sm mb-6 transition-all hover:scale-[1.02]"
+          style="background:linear-gradient(135deg,#ff8235,#e06520);color:white;box-shadow:0 0 20px rgba(255,130,53,0.3);">
+          Simular Escaneo
+        </button>
+        <!-- Recent scans -->
+        <div class="glass-dark rounded-xl p-4 border border-white/5">
+          <h4 class="text-xs text-gray-500 uppercase tracking-widest font-mono mb-3">Escaneos Recientes</h4>
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-gray-300 font-medium">Telar #07</span>
+              <span class="text-xs text-gray-500 font-mono">Hoy 08:14</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-gray-300 font-medium">Hiladora #03</span>
+              <span class="text-xs text-gray-500 font-mono">Hoy 07:52</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-gray-300 font-medium">Caldera B1</span>
+              <span class="text-xs text-gray-500 font-mono">Ayer 22:30</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-gray-300 font-medium">Telar #12</span>
+              <span class="text-xs text-gray-500 font-mono">Ayer 21:05</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: PLANTA -->
+    <div id="tab-planta" class="tab-content">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="flex items-center justify-between mb-5">
+          <h2 class="text-lg font-black text-white">Distribución de Planta</h2>
+          <div class="flex items-center gap-3 text-xs text-gray-500">
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background:var(--brand);"></span>Alerta</span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full inline-block bg-gray-600"></span>OK</span>
+          </div>
+        </div>
+        <div id="plantGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3"></div>
+      </div>
+    </div>
+
+  </div><!-- end appContent -->
+</div><!-- end appPage -->
+
+
+<!-- PLANT MODAL -->
+<div id="plantModal" onclick="closePlantModal(event)">
+  <div class="modal-box">
+    <div class="flex items-start justify-between mb-4">
+      <div>
+        <p class="text-xs text-gray-500 font-mono uppercase tracking-widest mb-1" id="pmCode">T-07</p>
+        <h2 class="text-2xl font-black text-white" id="pmName">Telar #07</h2>
+      </div>
+      <button onclick="closePlantModal()" class="text-gray-600 hover:text-white transition-colors text-xl leading-none">✕</button>
+    </div>
+    <div class="mb-5">
+      <div class="flex justify-between text-xs mb-2">
+        <span class="text-gray-400">Estado de salud</span>
+        <span class="font-mono font-bold" id="pmHealthLabel" style="color:var(--brand);">72%</span>
+      </div>
+      <div class="h-3 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.08);">
+        <div id="pmHealthBar" class="h-full rounded-full transition-all duration-700" style="width:72%;"></div>
+      </div>
+    </div>
+    <div class="space-y-2 mb-6 text-xs text-gray-400">
+      <div class="flex justify-between"><span>Tipo</span><span class="text-white font-medium" id="pmTipo">—</span></div>
+      <div class="flex justify-between"><span>Ubicación</span><span class="text-white font-medium" id="pmUbicacion">—</span></div>
+      <div class="flex justify-between"><span>Horas Op.</span><span class="text-white font-medium" id="pmHoras">—</span></div>
+    </div>
+    <button onclick="showTab('activos'); closePlantModal();"
+      class="w-full py-2.5 rounded-xl text-xs font-bold transition-all hover:scale-[1.02]"
+      style="background:linear-gradient(135deg,#ff8235,#e06520);color:white;box-shadow:0 0 16px rgba(255,130,53,0.3);">
+      Ver Historial Completo →
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SCRIPTS -->
+<!-- ============================================================ -->
+<script>
+  // ---- OT DATA ----
+  const otData = [
+    { id:'OT-0421', activo:'Telar #07',    tipo:'Preventivo', tecnico:'M. García', prioridad:'Alta',   status:'PENDIENTE', fecha:'10/05' },
+    { id:'OT-0420', activo:'Caldera B1',   tipo:'Correctivo', tecnico:'J. López',  prioridad:'Media',  status:'PENDIENTE', fecha:'10/05' },
+    { id:'OT-0419', activo:'Hiladora #03', tipo:'Predictivo', tecnico:'A. Ramos',  prioridad:'Baja',   status:'CERRADA',   fecha:'09/05' },
+    { id:'OT-0418', activo:'Telar #12',    tipo:'Preventivo', tecnico:'C. Ruiz',   prioridad:'Media',  status:'CERRADA',   fecha:'09/05' },
+    { id:'OT-0417', activo:'Caldera B2',   tipo:'Preventivo', tecnico:'M. García', prioridad:'Alta',   status:'PENDIENTE', fecha:'08/05' },
+    { id:'OT-0416', activo:'Hiladora #08', tipo:'Correctivo', tecnico:'J. López',  prioridad:'Media',  status:'CERRADA',   fecha:'08/05' },
+    { id:'OT-0415', activo:'Telar #04',    tipo:'Predictivo', tecnico:'A. Ramos',  prioridad:'Baja',   status:'CERRADA',   fecha:'07/05' },
+    { id:'OT-0414', activo:'Telar #09',    tipo:'Preventivo', tecnico:'C. Ruiz',   prioridad:'Alta',   status:'PENDIENTE', fecha:'07/05' },
+  ];
+
+  // ---- ACTIVOS DATA ----
+  const activosData = [
+    { id:'ACT-001', nombre:'Telar #07',    tipo:'Telar',    ubicacion:'Nave A',  horas:4820, metros:47832, salud:62 },
+    { id:'ACT-002', nombre:'Telar #12',    tipo:'Telar',    ubicacion:'Nave A',  horas:3210, metros:31500, salud:81 },
+    { id:'ACT-003', nombre:'Telar #04',    tipo:'Telar',    ubicacion:'Nave B',  horas:5100, metros:52000, salud:48 },
+    { id:'ACT-004', nombre:'Telar #09',    tipo:'Telar',    ubicacion:'Nave B',  horas:2900, metros:28700, salud:88 },
+    { id:'ACT-005', nombre:'Hiladora #03', tipo:'Hiladora', ubicacion:'Nave C',  horas:6200, metros:0,     salud:93 },
+    { id:'ACT-006', nombre:'Hiladora #08', tipo:'Hiladora', ubicacion:'Nave C',  horas:4100, metros:0,     salud:70 },
+    { id:'ACT-007', nombre:'Caldera B1',   tipo:'Caldera',  ubicacion:'Sala TM', horas:8400, metros:0,     salud:55 },
+    { id:'ACT-008', nombre:'Caldera B2',   tipo:'Caldera',  ubicacion:'Sala TM', horas:7100, metros:0,     salud:78 },
+  ];
+
+  // ---- INVENTARIO DATA ----
+  const inventarioData = [
+    { cod:'REP-0101', desc:'Correa trapecial A-45',   unidad:'und', stock:2,  min:3,  transito:false },
+    { cod:'REP-0102', desc:'Rodamiento 6205-2RS',     unidad:'und', stock:5,  min:4,  transito:false },
+    { cod:'REP-0103', desc:'Faja sincrónica T5-900',  unidad:'und', stock:1,  min:2,  transito:true  },
+    { cod:'REP-0104', desc:'Aceite hidráulico ISO 46',unidad:'lt',  stock:18, min:10, transito:false },
+    { cod:'REP-0105', desc:'Filtro de aire FA-200',   unidad:'und', stock:0,  min:2,  transito:true  },
+    { cod:'REP-0106', desc:'Lanzadera doble Telar',   unidad:'und', stock:4,  min:5,  transito:false },
+    { cod:'REP-0107', desc:'Sello mecánico SK-38',    unidad:'und', stock:2,  min:2,  transito:false },
+    { cod:'REP-0108', desc:'Válvula solenoide 1/2"',  unidad:'und', stock:1,  min:3,  transito:false },
+  ];
+
+  // ---- PLANT DATA ----
+  const plantData = [
+    { code:'T-01', name:'Telar #01',    alert:false }, { code:'T-02', name:'Telar #02',    alert:false },
+    { code:'T-03', name:'Telar #03',    alert:false }, { code:'T-04', name:'Telar #04',    alert:true  },
+    { code:'T-05', name:'Telar #05',    alert:false }, { code:'T-06', name:'Telar #06',    alert:false },
+    { code:'T-07', name:'Telar #07',    alert:true  }, { code:'T-08', name:'Telar #08',    alert:false },
+    { code:'T-09', name:'Telar #09',    alert:true  }, { code:'H-03', name:'Hiladora #03', alert:false },
+    { code:'H-08', name:'Hiladora #08', alert:false }, { code:'H-11', name:'Hiladora #11', alert:false },
+    { code:'CB-1', name:'Caldera B1',   alert:true  }, { code:'CB-2', name:'Caldera B2',   alert:false },
+    { code:'COM', name:'Compresor',     alert:false },
+  ];
+
+  function renderOTTable() {
+    const tbody = document.getElementById('otTable');
+    if (!tbody) return;
+    let pending = 0;
+    tbody.innerHTML = otData.map((ot, i) => {
+      const isPending = ot.status === 'PENDIENTE';
+      if (isPending) pending++;
+      const prioColor = ot.prioridad === 'Alta' ? 'var(--alert)' : ot.prioridad === 'Media' ? 'var(--brand)' : 'rgba(255,255,255,0.4)';
+      return `
+        <tr class="hover:bg-white/2 transition-colors">
+          <td class="py-3 px-6 font-mono text-gray-400">${ot.id}</td>
+          <td class="py-3 px-4 text-gray-300 font-medium">${ot.activo}</td>
+          <td class="py-3 px-4 text-gray-400 hidden sm:table-cell">${ot.tipo}</td>
+          <td class="py-3 px-4 text-gray-400 hidden md:table-cell">${ot.tecnico}</td>
+          <td class="py-3 px-4 hidden lg:table-cell">
+            <span class="text-xs font-mono" style="color:${prioColor};">${ot.prioridad}</span>
+          </td>
+          <td class="py-3 px-4">
+            <button class="ot-status px-2.5 py-1 rounded font-mono text-xs" onclick="toggleOT(${i})"
+              style="${isPending
+                ? 'background:rgba(var(--alert-rgb),0.15); color:var(--alert);'
+                : 'background:rgba(var(--brand-rgb),0.1); color:var(--brand);'}">
+              ${ot.status}
+            </button>
+          </td>
+        </tr>`;
+    }).join('');
+    const el = document.getElementById('pendingCount');
+    if (el) el.textContent = pending + ' pendiente' + (pending !== 1 ? 's' : '');
+    // update alert counter card
+    const ac = document.getElementById('alertCount');
+    if (ac) ac.textContent = pending;
+  }
+
+  function toggleOT(i) {
+    otData[i].status = otData[i].status === 'PENDIENTE' ? 'CERRADA' : 'PENDIENTE';
+    renderOTTable();
+    // Flash feedback
+    const rows = document.querySelectorAll('#otTable tr');
+    if (rows[i]) {
+      rows[i].style.background = 'rgba(255,130,53,0.06)';
+      setTimeout(() => { rows[i].style.background = ''; }, 500);
+    }
+  }
+
+  // ---- LOGIN ----
+  const VALID = { email: 'admin@textilsmart.com', pass: 'demo1234' };
+
+  function openLoginModal() {
+    const m = document.getElementById('loginModal');
+    m.classList.remove('hidden');
+    m.style.opacity = '0';
+    requestAnimationFrame(() => { m.style.opacity = '1'; });
+    document.getElementById('loginError').classList.add('hidden');
+    document.getElementById('loginBtnText').textContent = 'Iniciar Sesión';
+  }
+
+  function closeLoginModal() {
+    const m = document.getElementById('loginModal');
+    m.style.opacity = '0';
+    setTimeout(() => m.classList.add('hidden'), 300);
+  }
+
+  function togglePass() {
+    const inp = document.getElementById('loginPassword');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  }
+
+  function handleLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass  = document.getElementById('loginPassword').value;
+    const errEl = document.getElementById('loginError');
+    const btnTxt = document.getElementById('loginBtnText');
+
+    if (email === VALID.email && pass === VALID.pass) {
+      btnTxt.textContent = 'Entrando…';
+      setTimeout(() => {
+        closeLoginModal();
+        setTimeout(showApp, 300);
+      }, 600);
+    } else {
+      errEl.classList.remove('hidden');
+      const modal = document.getElementById('loginModal').querySelector('.animate-slideUp, div[class*="max-w"]');
+      document.querySelector('#loginModal > div').classList.add('shake');
+      setTimeout(() => document.querySelector('#loginModal > div').classList.remove('shake'), 500);
+    }
+  }
+
+  function showApp() {
+    // Fade out landing
+    const landing = document.getElementById('landingPage');
+    landing.style.opacity = '0';
+    landing.style.pointerEvents = 'none';
+    setTimeout(() => { landing.style.display = 'none'; }, 600);
+
+    // Show app
+    const app = document.getElementById('appPage');
+    app.style.display = 'flex';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => { app.style.opacity = '1'; });
+    });
+
+    // Set last update time
+    const now = new Date();
+    document.getElementById('lastUpdate').textContent =
+      now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) + ' — ' +
+      now.toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
+
+    renderOTTable();
+    startAppCounters();
+    // Reset lazy-render flags on each login
+    window._activosRendered = false;
+    window._otsRendered = false;
+    window._invRendered = false;
+    window._plantRendered = false;
+    showTab('panel');
+  }
+
+  function handleLogout() {
+    const app = document.getElementById('appPage');
+    app.style.opacity = '0';
+    setTimeout(() => {
+      app.style.display = 'none';
+      const landing = document.getElementById('landingPage');
+      landing.style.display = '';
+      requestAnimationFrame(() => { landing.style.opacity = '1'; landing.style.pointerEvents = ''; });
+    }, 400);
+  }
+
+  // ---- METRO COUNTERS ----
+  let metros = 47832;
+  function startLandingCounters() {
+    setInterval(() => {
+      metros += Math.floor(Math.random() * 3) + 1;
+      if (metros >= 50000) metros = 47500;
+      const el = document.getElementById('metroCounter');
+      if (el) el.textContent = metros.toLocaleString('es-CO');
+    }, 1200);
+  }
+
+  function startAppCounters() {
+    setInterval(() => {
+      metros += Math.floor(Math.random() * 3) + 1;
+      if (metros >= 50000) metros = 47500;
+      const el = document.getElementById('appMetroCounter');
+      if (el) el.textContent = metros.toLocaleString('es-CO');
+    }, 1200);
+  }
+
+  // ---- MOBILE MENU ----
+  document.getElementById('menuBtn').addEventListener('click', () => {
+    document.getElementById('mobileMenu').classList.toggle('hidden');
+  });
+
+  // ---- NAVBAR SCROLL ----
+  window.addEventListener('scroll', () => {
+    const nav = document.getElementById('mainNav');
+    if (!nav) return;
+    nav.style.background = window.scrollY > 20
+      ? 'rgba(0,0,0,0.92)'
+      : 'rgba(0,0,0,0.7)';
+  });
+
+  // ---- LOGIN on Enter key ----
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !document.getElementById('loginModal').classList.contains('hidden')) {
+      handleLogin();
+    }
+    if (e.key === 'Escape' && !document.getElementById('loginModal').classList.contains('hidden')) {
+      closeLoginModal();
+    }
+  });
+
+  // ---- TAB NAVIGATION ----
+  function showTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    const content = document.getElementById('tab-' + tabId);
+    if (content) content.classList.add('active');
+    const btn = document.getElementById('tabBtn-' + tabId);
+    if (btn) btn.classList.add('active');
+    // Lazy render
+    if (tabId === 'activos' && !window._activosRendered) { renderActivosTable('Todos'); window._activosRendered = true; }
+    if (tabId === 'ots' && !window._otsRendered) { renderOTsTab('Todas'); window._otsRendered = true; }
+    if (tabId === 'inventario' && !window._invRendered) { renderInventario(); window._invRendered = true; }
+    if (tabId === 'planta' && !window._plantRendered) { renderPlantGrid(); window._plantRendered = true; }
+  }
+
+  // ---- ACTIVOS ----
+  function renderActivosTable(filter) {
+    const rows = activosData.filter(a => filter === 'Todos' || a.tipo.startsWith(filter));
+    document.getElementById('activosTable').innerHTML = rows.map(a => {
+      const pct = a.salud;
+      const color = pct >= 80 ? '#22c55e' : pct >= 55 ? 'var(--brand)' : 'var(--alert)';
+      const badge = pct >= 80 ? 'OK' : pct >= 55 ? 'REGULAR' : 'CRÍTICO';
+      return `<tr class="hover:bg-white/2 transition-colors">
+        <td class="py-3 px-4 font-mono text-gray-400">${a.id}</td>
+        <td class="py-3 px-4 text-gray-300 font-medium">${a.nombre}</td>
+        <td class="py-3 px-4 text-gray-400 hidden sm:table-cell">${a.tipo}</td>
+        <td class="py-3 px-4 text-gray-400 hidden md:table-cell">${a.ubicacion}</td>
+        <td class="py-3 px-4 text-gray-400 hidden lg:table-cell font-mono">${a.horas.toLocaleString('es-CO')}</td>
+        <td class="py-3 px-4 text-gray-400 hidden lg:table-cell font-mono">${a.metros ? a.metros.toLocaleString('es-CO') + ' m' : '—'}</td>
+        <td class="py-3 px-4">
+          <div class="flex items-center gap-2 min-w-[100px]">
+            <div class="flex-1 h-1.5 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.08);">
+              <div class="h-full rounded-full" style="width:${pct}%;background:${color};transition:width 0.6s ease;"></div>
+            </div>
+            <span class="text-xs font-mono whitespace-nowrap" style="color:${color};">${badge}</span>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function filterActivos(tipo) {
+    document.querySelectorAll('#activosFilterPills .filter-pill').forEach(p => {
+      p.classList.toggle('active', p.textContent.trim().startsWith(tipo === 'Todos' ? 'Todos' : tipo));
+    });
+    renderActivosTable(tipo);
+  }
+
+  // ---- OTs TAB ----
+  function renderOTsTab(filter) {
+    const rows = otData.filter(o => filter === 'Todas' || o.prioridad === filter);
+    document.getElementById('otsTabTable').innerHTML = rows.map((ot, i) => {
+      const realIdx = otData.indexOf(ot);
+      const isPending = ot.status === 'PENDIENTE';
+      const prioColor = ot.prioridad === 'Alta' ? 'var(--alert)' : ot.prioridad === 'Media' ? 'var(--brand)' : 'rgba(255,255,255,0.4)';
+      return `<tr class="hover:bg-white/2 transition-colors">
+        <td class="py-3 px-4 font-mono text-gray-400">${ot.id}</td>
+        <td class="py-3 px-4 text-gray-300 font-medium">${ot.activo}</td>
+        <td class="py-3 px-4 text-gray-400 hidden sm:table-cell">${ot.tipo}</td>
+        <td class="py-3 px-4 text-gray-400 hidden md:table-cell">${ot.tecnico}</td>
+        <td class="py-3 px-4"><span class="text-xs font-mono" style="color:${prioColor};">${ot.prioridad}</span></td>
+        <td class="py-3 px-4 text-gray-500 hidden lg:table-cell font-mono">${ot.fecha}</td>
+        <td class="py-3 px-4">
+          <button class="ot-status px-2.5 py-1 rounded font-mono text-xs" onclick="toggleOTTab(${realIdx})"
+            style="${isPending ? 'background:rgba(var(--alert-rgb),0.15);color:var(--alert);' : 'background:rgba(var(--brand-rgb),0.1);color:var(--brand);'}">
+            ${ot.status}
+          </button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function filterOTs(prio) {
+    document.querySelectorAll('#otsFilterPills .filter-pill').forEach(p => {
+      p.classList.toggle('active', p.textContent.trim() === prio);
+    });
+    renderOTsTab(prio);
+  }
+
+  function toggleOTTab(i) {
+    otData[i].status = otData[i].status === 'PENDIENTE' ? 'CERRADA' : 'PENDIENTE';
+    const activeFilter = document.querySelector('#otsFilterPills .filter-pill.active');
+    renderOTsTab(activeFilter ? activeFilter.textContent.trim() : 'Todas');
+    renderOTTable(); // sync panel tab
+  }
+
+  // ---- INVENTARIO ----
+  function renderInventario() {
+    let crit = 0;
+    document.getElementById('inventarioTable').innerHTML = inventarioData.map(item => {
+      const isCrit = item.stock <= item.min;
+      if (isCrit) crit++;
+      const estado = item.transito ? 'EN TRÁNSITO' : isCrit ? 'CRÍTICO' : 'OK';
+      const eColor = item.transito ? 'color:rgba(255,255,255,0.5)' : isCrit ? 'color:var(--brand)' : 'color:#22c55e';
+      const eBg = item.transito ? 'background:rgba(255,255,255,0.06)' : isCrit ? 'background:rgba(var(--brand-rgb),0.12)' : 'background:rgba(34,197,94,0.1)';
+      return `<tr class="hover:bg-white/2 transition-colors${isCrit ? ' inv-critical' : ''}">
+        <td class="py-3 px-4 font-mono text-gray-400">${item.cod}</td>
+        <td class="py-3 px-4 text-gray-300">${item.desc}</td>
+        <td class="py-3 px-4 text-gray-500 hidden sm:table-cell">${item.unidad}</td>
+        <td class="py-3 px-4 font-mono text-white font-bold">${item.stock}</td>
+        <td class="py-3 px-4 text-gray-500 hidden md:table-cell font-mono">${item.min}</td>
+        <td class="py-3 px-4"><span class="text-xs px-2 py-0.5 rounded font-mono" style="${eBg};${eColor};">${estado}</span></td>
+      </tr>`;
+    }).join('');
+    const el = document.getElementById('invCritCount');
+    if (el) el.textContent = crit;
+  }
+
+  // ---- PLANTA ----
+  function renderPlantGrid() {
+    document.getElementById('plantGrid').innerHTML = plantData.map(m => `
+      <div class="plant-cell ${m.alert ? 'alert' : 'ok'}" onclick="showMachineInfo('${m.code}','${m.name}',${m.alert})">
+        <svg class="w-7 h-7 mx-auto mb-2 opacity-60" style="color:${m.alert ? 'var(--brand)' : 'rgba(255,255,255,0.5)'};" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        <div class="text-xs font-mono" style="color:${m.alert ? 'var(--brand)' : 'rgba(255,255,255,0.7)'};">${m.code}</div>
+        <div class="text-xs mt-0.5" style="color:rgba(255,255,255,0.4);">${m.name.split(' ')[0]}</div>
+        <div class="mt-2 flex justify-center">
+          <div class="w-1.5 h-1.5 rounded-full" style="background:${m.alert ? 'var(--brand)' : '#22c55e'};box-shadow:0 0 4px ${m.alert ? 'var(--brand)' : '#22c55e'};"></div>
+        </div>
+      </div>`).join('');
+  }
+
+  // ---- PLANT MODAL ----
+  function showMachineInfo(code, name, isAlert) {
+    const asset = activosData.find(a => a.nombre === name) || {};
+    const salud = asset.salud || (isAlert ? 52 : 85);
+    const healthColor = salud >= 80 ? '#22c55e' : salud >= 55 ? 'var(--brand)' : 'var(--alert)';
+    document.getElementById('pmCode').textContent = code;
+    document.getElementById('pmName').textContent = name;
+    document.getElementById('pmHealthLabel').textContent = salud + '%';
+    document.getElementById('pmHealthLabel').style.color = healthColor;
+    document.getElementById('pmHealthBar').style.width = salud + '%';
+    document.getElementById('pmHealthBar').style.background = healthColor;
+    document.getElementById('pmTipo').textContent = asset.tipo || '—';
+    document.getElementById('pmUbicacion').textContent = asset.ubicacion || '—';
+    document.getElementById('pmHoras').textContent = asset.horas ? asset.horas.toLocaleString('es-CO') + ' h' : '—';
+    document.getElementById('plantModal').classList.add('open');
+  }
+
+  function closePlantModal(e) {
+    if (!e || e.target === document.getElementById('plantModal') || !e.target.closest) {
+      document.getElementById('plantModal').classList.remove('open');
+    }
+  }
+
+  // ---- MOCK SCAN ----
+  function mockScan() {
+    const a = activosData[Math.floor(Math.random() * activosData.length)];
+    alert(`QR Escaneado: ${a.nombre}\nID: ${a.id}\nUbicación: ${a.ubicacion}\nSalud: ${a.salud}%\nÚltima OT: ${otData.find(o => o.activo === a.nombre)?.id || 'N/A'}`);
+  }
+
+  // ---- CONTACT FORM ----
+  function handleContactForm(event) {
+    event.preventDefault();
+    document.getElementById('contactFormWrap').style.display = 'none';
+    const s = document.getElementById('contactSuccess');
+    s.classList.remove('hidden');
+    s.style.display = 'flex';
+  }
+
+  // ---- ROI CALCULATOR ----
+  function fmtMoney(n) {
+    if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+    if (n >= 1000) return '$' + Math.round(n/1000) + 'k';
+    return '$' + n.toLocaleString('es-CO');
+  }
+
+  function updateROI() {
+    const paro    = parseInt(document.getElementById('roi-paro').value);
+    const fallas  = parseInt(document.getElementById('roi-fallas').value);
+    const tec     = parseInt(document.getElementById('roi-tecnicos').value);
+    const activos = parseInt(document.getElementById('roi-activos').value);
+
+    // Update slider labels
+    document.getElementById('roi-val-paro').textContent    = paro.toLocaleString('es-CO');
+    document.getElementById('roi-val-fallas').textContent  = fallas;
+    document.getElementById('roi-val-tecnicos').textContent= tec;
+    const activosK = activos >= 1000000 ? (activos/1000000).toFixed(1)+'M' : Math.round(activos/1000)+'k';
+    document.getElementById('roi-val-activos').textContent = activosK;
+
+    // Calculations
+    const horasParoAnual = fallas * 4 * 12;         // avg 4h per failure * 12 months
+    const costoReactivoAnual = horasParoAnual * paro;
+    const reduccion = 0.40;                          // CMMS reduces failures by 40%
+    const ahorroAnual = Math.round(costoReactivoAnual * reduccion);
+    const costoCMMS = 4800 + tec * 300;              // base + per-tech pricing
+    const breakeven = costoCMMS / (ahorroAnual / 12);
+    const horasRecuperadas = Math.round(horasParoAnual * reduccion);
+
+    // Update results
+    document.getElementById('roi-ahorro').textContent = fmtMoney(ahorroAnual);
+    document.getElementById('roi-cta-amount').textContent = fmtMoney(ahorroAnual);
+    document.getElementById('roi-horas').textContent = horasRecuperadas + 'h';
+    document.getElementById('roi-breakeven').textContent = Math.max(0.5, breakeven).toFixed(1);
+
+    // Bars
+    const costoConCMMS = costoReactivoAnual - ahorroAnual;
+    const barReactivo = 100;
+    const barCMMS = costoReactivoAnual > 0 ? Math.round((costoConCMMS / costoReactivoAnual) * 100) : 60;
+    document.getElementById('roi-bar-reactivo').style.width = barReactivo + '%';
+    document.getElementById('roi-bar-cmms').style.width = Math.max(5, barCMMS) + '%';
+    document.getElementById('roi-bar-reactivo-label').textContent = fmtMoney(costoReactivoAnual) + '/año';
+    document.getElementById('roi-bar-cmms-label').textContent = fmtMoney(costoConCMMS) + '/año';
+  }
+
+  // ---- INIT ----
+  startLandingCounters();
+  updateROI();
+</script>
+</body>
+</html>
