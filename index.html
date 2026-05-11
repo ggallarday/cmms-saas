@@ -469,7 +469,7 @@
 
     #plantModal .modal-box {
       width: 100%;
-      max-width: 360px;
+      max-width: 420px;
       margin: 16px;
       border-radius: 20px;
       padding: 28px;
@@ -496,6 +496,165 @@
       background: rgba(var(--brand-rgb), 0.15);
       color: var(--brand);
       border-color: rgba(var(--brand-rgb), 0.35);
+    }
+
+    /* ---- ASSET & DETAIL MODALS ---- */
+    #assetModal, #assetDetailModal {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.72);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+      padding: 16px;
+      overflow-y: auto;
+    }
+    #assetModal.open, #assetDetailModal.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    #assetModal .modal-box {
+      width: 100%;
+      max-width: 520px;
+      margin: auto;
+      border-radius: 20px;
+      padding: 28px;
+      background: rgba(12, 12, 12, 0.97);
+      border: 1px solid rgba(var(--brand-rgb), 0.2);
+      box-shadow: 0 0 60px rgba(var(--brand-rgb), 0.12);
+      animation: slideUp 0.3s ease forwards;
+    }
+    #assetDetailModal .modal-box {
+      width: 100%;
+      max-width: 440px;
+      margin: auto;
+      border-radius: 20px;
+      padding: 28px;
+      background: rgba(12, 12, 12, 0.97);
+      border: 1px solid rgba(var(--brand-rgb), 0.2);
+      box-shadow: 0 0 60px rgba(var(--brand-rgb), 0.12);
+      animation: slideUp 0.3s ease forwards;
+    }
+
+    /* Image upload slots */
+    .img-slot {
+      border: 2px dashed rgba(var(--brand-rgb), 0.18);
+      border-radius: 12px;
+      background: rgba(var(--brand-rgb), 0.03);
+      cursor: pointer;
+      transition: all 0.2s;
+      aspect-ratio: 4/3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+    .img-slot:hover {
+      border-color: rgba(var(--brand-rgb), 0.45);
+      background: rgba(var(--brand-rgb), 0.06);
+    }
+    .img-slot.filled {
+      border-style: solid;
+      border-color: rgba(var(--brand-rgb), 0.5);
+    }
+    .img-slot img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Excel drop zone */
+    .drop-zone {
+      border: 2px dashed rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: rgba(var(--brand-rgb), 0.5);
+      background: rgba(var(--brand-rgb), 0.04);
+    }
+
+    /* Step indicator dots */
+    .step-dot {
+      height: 8px;
+      width: 8px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.15);
+      transition: all 0.3s;
+    }
+    .step-dot.active {
+      background: var(--brand);
+      box-shadow: 0 0 8px rgba(var(--brand-rgb), 0.5);
+      width: 22px;
+    }
+
+    /* Premium badge */
+    .premium-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      background: rgba(var(--brand-rgb), 0.12);
+      color: var(--brand);
+      border: 1px solid rgba(var(--brand-rgb), 0.3);
+      vertical-align: middle;
+      margin-left: 6px;
+    }
+
+    /* AI scan animation */
+    @keyframes aiScanMove {
+      0%, 100% { top: 0%; }
+      50% { top: 82%; }
+    }
+    .ai-scan-line {
+      position: absolute;
+      left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, rgba(var(--brand-rgb), 0.95), transparent);
+      box-shadow: 0 0 12px rgba(var(--brand-rgb), 0.7), 0 0 28px rgba(var(--brand-rgb), 0.3);
+      animation: aiScanMove 1.8s ease-in-out infinite;
+    }
+
+    /* Plant modal wider for evidence */
+    #plantModal .modal-box {
+      max-height: 92vh;
+      overflow-y: auto;
+    }
+
+    /* Toast */
+    #iqToast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 500;
+      background: rgba(15, 15, 15, 0.96);
+      border: 1px solid rgba(var(--brand-rgb), 0.35);
+      color: white;
+      padding: 10px 22px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      box-shadow: 0 0 28px rgba(var(--brand-rgb), 0.2);
+      transition: opacity 0.4s;
+      white-space: nowrap;
     }
   </style>
 </head>
@@ -1711,7 +1870,17 @@
       <div id="tab-activos" class="tab-content">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-            <h2 class="text-lg font-black text-white">Gestión de Activos</h2>
+            <div class="flex items-center gap-3">
+              <h2 class="text-lg font-black text-white">Gestión de Activos</h2>
+              <button onclick="openAssetModal()"
+                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-[1.02]"
+                style="background:linear-gradient(135deg,#ff8235,#e06520);color:white;box-shadow:0 0 12px rgba(255,130,53,0.25);">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                </svg>
+                Registrar Activo
+              </button>
+            </div>
             <div class="flex flex-wrap gap-2" id="activosFilterPills">
               <button class="filter-pill active" onclick="filterActivos('Todos')">Todos</button>
               <button class="filter-pill" onclick="filterActivos('Motor')">Motores</button>
@@ -1732,6 +1901,7 @@
                     <th class="text-left py-3 px-4 text-gray-500 font-normal hidden lg:table-cell">Horas Op.</th>
                     <th class="text-left py-3 px-4 text-gray-500 font-normal hidden lg:table-cell">Metros Acum.</th>
                     <th class="text-left py-3 px-4 text-gray-500 font-normal">Salud</th>
+                    <th class="py-3 px-4"></th>
                   </tr>
                 </thead>
                 <tbody id="activosTable" class="divide-y divide-white/5"></tbody>
@@ -1771,6 +1941,78 @@
               </table>
             </div>
           </div>
+
+          <!-- EXCEL IMPORT SECTION -->
+          <div class="mt-5 glass-dark rounded-2xl border border-white/5 p-5">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-sm font-bold text-white">Importación de Eventos de Parada</h3>
+                <p class="text-xs text-gray-500 mt-0.5">Carga tu historial desde Excel para análisis predictivo</p>
+              </div>
+              <span class="text-xs px-2.5 py-1 rounded-full font-mono"
+                style="background:rgba(var(--brand-rgb),0.1);color:var(--brand);border:1px solid rgba(var(--brand-rgb),0.2);">XLS / CSV</span>
+            </div>
+            <div id="excelDrop" class="drop-zone"
+              ondragover="handleExcelDragOver(event)" ondragleave="handleExcelDragLeave()"
+              ondrop="handleExcelDrop(event)" onclick="document.getElementById('excelFileInput').click()">
+              <svg class="w-10 h-10 mx-auto mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              <p class="text-sm text-gray-400 font-medium">Arrastra tu archivo Excel aquí</p>
+              <p class="text-xs text-gray-600 mt-1">o haz clic para seleccionar &nbsp;·&nbsp; .xlsx .xls .csv</p>
+            </div>
+            <input type="file" id="excelFileInput" class="hidden" accept=".xlsx,.xls,.csv"
+              onchange="simulateExcelImport()">
+
+            <!-- Mapping result -->
+            <div id="excelMapping" class="hidden mt-4">
+              <div class="flex items-center gap-2 mb-3">
+                <svg class="w-4 h-4 flex-shrink-0" style="color:var(--brand);" fill="none" stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h4 class="text-xs font-bold text-white">Campos detectados &mdash; <span style="color:var(--brand);">142 registros</span></h4>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 mb-4">
+                <div class="glass rounded-lg p-2.5 border border-white/5 flex items-center gap-2">
+                  <div class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:var(--brand);"></div>
+                  <div><div class="text-xs text-white font-mono">fecha_inicio</div><div class="text-xs text-gray-500">Fecha/Hora Inicio</div></div>
+                </div>
+                <div class="glass rounded-lg p-2.5 border border-white/5 flex items-center gap-2">
+                  <div class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:var(--brand);"></div>
+                  <div><div class="text-xs text-white font-mono">fecha_fin</div><div class="text-xs text-gray-500">Fecha/Hora Fin</div></div>
+                </div>
+                <div class="glass rounded-lg p-2.5 border border-white/5 flex items-center gap-2">
+                  <div class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:var(--brand);"></div>
+                  <div><div class="text-xs text-white font-mono">duracion_min</div><div class="text-xs text-gray-500">Duración (min)</div></div>
+                </div>
+                <div class="glass rounded-lg p-2.5 border border-white/5 flex items-center gap-2">
+                  <div class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:var(--brand);"></div>
+                  <div><div class="text-xs text-white font-mono">maquina</div><div class="text-xs text-gray-500">Máquina</div></div>
+                </div>
+                <div class="glass rounded-lg p-2.5 border border-white/5 flex items-center gap-2">
+                  <div class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:var(--brand);"></div>
+                  <div><div class="text-xs text-white font-mono">zona</div><div class="text-xs text-gray-500">Zona / Línea</div></div>
+                </div>
+                <div class="glass rounded-lg p-2.5 border border-white/5 flex items-center gap-2">
+                  <div class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:var(--brand);"></div>
+                  <div><div class="text-xs text-white font-mono">tipo_parada</div><div class="text-xs text-gray-500">Tipo de Parada</div></div>
+                </div>
+                <div class="glass rounded-lg p-2.5 border border-white/5 flex items-center gap-2 col-span-2">
+                  <div class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:var(--brand);"></div>
+                  <div><div class="text-xs text-white font-mono">comentarios</div><div class="text-xs text-gray-500">Comentarios del Técnico</div></div>
+                </div>
+              </div>
+              <button onclick="showToast('142 eventos importados correctamente.')"
+                class="w-full py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-[1.02]"
+                style="background:linear-gradient(135deg,#ff8235,#e06520);color:white;box-shadow:0 0 16px rgba(255,130,53,0.25);">
+                Importar 142 Registros →
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -1928,8 +2170,267 @@
         style="background:linear-gradient(135deg,#ff8235,#e06520);color:white;box-shadow:0 0 16px rgba(255,130,53,0.3);">
         Ver Historial Completo →
       </button>
+
+      <!-- EVIDENCE UPLOAD -->
+      <div class="mt-4 pt-4 border-t border-white/5">
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="text-xs font-bold text-white">Reportar Anomalía Visual<span class="premium-badge">PREMIUM</span></h4>
+        </div>
+        <!-- Upload zone -->
+        <div id="evidenceZone" onclick="document.getElementById('evidenceInput').click()"
+          class="drop-zone" style="padding:16px 12px;">
+          <svg class="w-8 h-8 mx-auto mb-2 opacity-25" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            style="color:var(--brand);">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <p class="text-xs text-gray-400 font-medium">Subir foto de la máquina</p>
+          <p class="text-xs text-gray-600 mt-0.5">JPG, PNG · hasta 10 MB</p>
+        </div>
+        <input type="file" id="evidenceInput" class="hidden" accept="image/*"
+          onchange="handleEvidenceUpload(this)">
+
+        <!-- Preview + AI scan -->
+        <div id="evidenceScanWrap" class="hidden mt-3">
+          <div class="relative rounded-xl overflow-hidden" style="aspect-ratio:16/9;">
+            <img id="evidencePreview" src="" alt="evidence" class="w-full h-full object-cover">
+            <div id="evidenceScanOverlay" class="absolute inset-0" style="background:rgba(0,0,0,0.28);">
+              <div class="ai-scan-line"></div>
+              <div class="absolute bottom-2 left-0 right-0 text-center">
+                <span class="text-xs font-mono animate-pulse" style="color:var(--brand);">Procesando con IA Predictiva...</span>
+              </div>
+            </div>
+          </div>
+          <!-- AI result (shown after 3s) -->
+          <div id="evidenceResult" class="hidden mt-2 p-3 rounded-xl"
+            style="background:rgba(var(--brand-rgb),0.08);border:1px solid rgba(var(--brand-rgb),0.2);">
+            <div class="flex items-start gap-2 mb-2">
+              <svg class="w-4 h-4 flex-shrink-0 mt-0.5" style="color:var(--brand);" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <p class="text-xs font-bold text-white">Análisis IA completado</p>
+                <p class="text-xs text-gray-400 mt-0.5">Anomalía detectada: desgaste superficial en zona de contacto. Confianza: 87%</p>
+              </div>
+            </div>
+            <button onclick="resetEvidence()" class="text-xs font-mono transition-colors hover:opacity-80"
+              style="color:var(--brand);">Cargar otra imagen →</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+
+  <!-- ============================================================ -->
+  <!-- ASSET REGISTRATION MODAL -->
+  <!-- ============================================================ -->
+  <div id="assetModal" onclick="closeAssetModal(event)">
+    <div class="modal-box">
+      <!-- Header -->
+      <div class="flex items-start justify-between mb-5">
+        <div>
+          <div class="flex items-center gap-2 mb-1.5">
+            <div class="flex items-center gap-1.5">
+              <div class="step-dot active" id="sdot1"></div>
+              <div class="step-dot" id="sdot2"></div>
+            </div>
+            <span class="text-xs text-gray-500 font-mono" id="assetStepLabel">Paso 1 de 2 — Ficha Técnica</span>
+          </div>
+          <h2 class="text-xl font-black text-white">Registrar Nuevo Activo</h2>
+        </div>
+        <button onclick="closeAssetModal()"
+          class="text-gray-600 hover:text-white transition-colors text-xl leading-none mt-1">✕</button>
+      </div>
+
+      <!-- STEP 1: Ficha Técnica -->
+      <div id="assetStep1">
+        <div class="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <label class="block text-xs text-gray-400 mb-1.5">Año de Fabricación</label>
+            <input type="number" id="assetYear" class="form-input" placeholder="2019" min="1980" max="2026" />
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1.5">Modelo</label>
+            <input type="text" id="assetModel" class="form-input" placeholder="HBP-320X" />
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1.5">Marca / Fabricante</label>
+            <input type="text" id="assetBrand" class="form-input" placeholder="Parker Hannifin" />
+          </div>
+          <div>
+            <label class="block text-xs text-gray-400 mb-1.5">Puesta en Marcha</label>
+            <input type="date" id="assetStartDate" class="form-input" />
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="block text-xs text-gray-400 mb-1.5">Nombre del Activo</label>
+          <input type="text" id="assetName" class="form-input" placeholder="Prensa Hidráulica Línea C" />
+        </div>
+        <div class="mb-5">
+          <label class="block text-xs text-gray-400 mb-1.5">Tipo de Equipo</label>
+          <select id="assetType" class="form-input" style="cursor:pointer;">
+            <option value="">Seleccionar tipo...</option>
+            <option>Motor</option>
+            <option>Potencia</option>
+            <option>Ensamblaje</option>
+            <option>Soporte</option>
+          </select>
+        </div>
+        <button onclick="goAssetStep2()"
+          class="w-full py-3 rounded-xl font-bold text-sm transition-all hover:scale-[1.02]"
+          style="background:linear-gradient(135deg,#ff8235,#e06520);color:white;box-shadow:0 0 20px rgba(255,130,53,0.3);">
+          Siguiente: Galería Base →
+        </button>
+      </div>
+
+      <!-- STEP 2: Galería Base -->
+      <div id="assetStep2" class="hidden">
+        <p class="text-xs text-gray-400 mb-4 leading-relaxed">Carga las 4 fotos de referencia del activo. Sirven como <strong class="text-white">línea base visual</strong> para el análisis IA predictivo.</p>
+        <div class="grid grid-cols-2 gap-3 mb-5">
+          <!-- Slot 1 -->
+          <div>
+            <p class="text-xs text-gray-500 mb-1.5 font-mono">01 Vista General</p>
+            <div class="img-slot" id="slot_1" onclick="triggerSlotInput(1)">
+              <svg class="w-7 h-7 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--brand);">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              <span class="text-xs text-gray-600">Toca para cargar</span>
+            </div>
+            <input type="file" id="slotInput_1" class="hidden" accept="image/*" onchange="previewSlotImage(this,1)">
+          </div>
+          <!-- Slot 2 -->
+          <div>
+            <p class="text-xs text-gray-500 mb-1.5 font-mono">02 Componente Crítico</p>
+            <div class="img-slot" id="slot_2" onclick="triggerSlotInput(2)">
+              <svg class="w-7 h-7 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--brand);">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              <span class="text-xs text-gray-600">Toca para cargar</span>
+            </div>
+            <input type="file" id="slotInput_2" class="hidden" accept="image/*" onchange="previewSlotImage(this,2)">
+          </div>
+          <!-- Slot 3 -->
+          <div>
+            <p class="text-xs text-gray-500 mb-1.5 font-mono">03 Tablero Eléctrico</p>
+            <div class="img-slot" id="slot_3" onclick="triggerSlotInput(3)">
+              <svg class="w-7 h-7 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--brand);">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
+              </svg>
+              <span class="text-xs text-gray-600">Toca para cargar</span>
+            </div>
+            <input type="file" id="slotInput_3" class="hidden" accept="image/*" onchange="previewSlotImage(this,3)">
+          </div>
+          <!-- Slot 4 -->
+          <div>
+            <p class="text-xs text-gray-500 mb-1.5 font-mono">04 Placa de Identificación</p>
+            <div class="img-slot" id="slot_4" onclick="triggerSlotInput(4)">
+              <svg class="w-7 h-7 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--brand);">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"/>
+              </svg>
+              <span class="text-xs text-gray-600">Toca para cargar</span>
+            </div>
+            <input type="file" id="slotInput_4" class="hidden" accept="image/*" onchange="previewSlotImage(this,4)">
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <button onclick="goAssetStep(1)"
+            class="flex-1 py-2.5 rounded-xl text-xs font-bold glass border border-white/10 hover:border-white/20 transition-all text-gray-300">
+            ← Volver
+          </button>
+          <button onclick="submitAssetRegistration()"
+            class="flex-[2] py-2.5 rounded-xl text-sm font-bold transition-all hover:scale-[1.02]"
+            style="background:linear-gradient(135deg,#ff8235,#e06520);color:white;box-shadow:0 0 20px rgba(255,130,53,0.3);">
+            Registrar Activo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- ASSET DETAIL / SHIFT REPORT MODAL -->
+  <!-- ============================================================ -->
+  <div id="assetDetailModal" onclick="closeAssetDetail(event)">
+    <div class="modal-box">
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <p class="text-xs text-gray-500 font-mono uppercase tracking-widest mb-1" id="adId">ACT-001</p>
+          <h2 class="text-lg font-black text-white" id="adName">M-01 Prensa Hidráulica</h2>
+          <p class="text-xs text-gray-500 mt-0.5" id="adUbicacion">Línea A</p>
+        </div>
+        <button onclick="closeAssetDetail()"
+          class="text-gray-600 hover:text-white transition-colors text-xl leading-none mt-1">✕</button>
+      </div>
+
+      <!-- Form -->
+      <form id="adForm" onsubmit="submitShiftReport(event)">
+        <div class="glass-dark rounded-xl p-4 border border-white/5 mb-4">
+          <h3 class="text-xs font-bold text-white mb-4 uppercase tracking-widest font-mono">Seguimiento de Turno</h3>
+
+          <!-- Horas efectivas -->
+          <div class="mb-5">
+            <label class="block text-xs text-gray-400 mb-1.5">Horas de Operación Efectiva</label>
+            <div class="flex items-center gap-3">
+              <input type="number" id="adHoras" class="form-input" placeholder="8.5"
+                min="0.5" max="24" step="0.5" style="max-width:140px;" />
+              <span class="text-xs text-gray-500">horas este turno</span>
+            </div>
+          </div>
+
+          <!-- Autonomous maintenance checklist -->
+          <div>
+            <label class="block text-xs text-gray-400 mb-3">Checklist de Mantenimiento Autónomo</label>
+            <div class="space-y-3">
+              <label class="flex items-center gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white/2 transition-colors">
+                <input type="checkbox" id="chk-lube" class="w-4 h-4 cursor-pointer rounded" style="accent-color:var(--brand);">
+                <div>
+                  <span class="text-xs text-white font-medium">Lubricación</span>
+                  <p class="text-xs text-gray-500">Puntos de engrase verificados</p>
+                </div>
+              </label>
+              <label class="flex items-center gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white/2 transition-colors">
+                <input type="checkbox" id="chk-limpieza" class="w-4 h-4 cursor-pointer" style="accent-color:var(--brand);">
+                <div>
+                  <span class="text-xs text-white font-medium">Limpieza</span>
+                  <p class="text-xs text-gray-500">Área de trabajo y componentes limpios</p>
+                </div>
+              </label>
+              <label class="flex items-center gap-3 cursor-pointer p-2.5 rounded-lg hover:bg-white/2 transition-colors">
+                <input type="checkbox" id="chk-inspeccion" class="w-4 h-4 cursor-pointer" style="accent-color:var(--brand);">
+                <div>
+                  <span class="text-xs text-white font-medium">Inspección Visual</span>
+                  <p class="text-xs text-gray-500">Sin anomalías visibles detectadas</p>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit"
+          class="w-full py-3 rounded-xl font-bold text-sm transition-all hover:scale-[1.02]"
+          style="background:linear-gradient(135deg,#ff8235,#e06520);color:white;box-shadow:0 0 20px rgba(255,130,53,0.3);">
+          Guardar Registro de Turno
+        </button>
+      </form>
+
+      <!-- Success state -->
+      <div id="adSuccessMsg" class="hidden flex-col items-center justify-center text-center py-8">
+        <div class="w-14 h-14 rounded-full flex items-center justify-center mb-4"
+          style="background:rgba(var(--brand-rgb),0.12);border:1px solid rgba(var(--brand-rgb),0.25);">
+          <svg class="w-7 h-7" style="color:var(--brand);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h3 class="text-base font-black text-white mb-1">Turno registrado</h3>
+        <p class="text-xs text-gray-400">Datos guardados correctamente.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="iqToast" class="hidden opacity-0">Activo registrado.</div>
 
   <!-- ============================================================ -->
   <!-- SCRIPTS -->
@@ -2175,6 +2676,7 @@
     function renderActivosTable(filter) {
       const rows = activosData.filter(a => filter === 'Todos' || a.tipo.startsWith(filter));
       document.getElementById('activosTable').innerHTML = rows.map(a => {
+        const idx = activosData.indexOf(a);
         const pct = a.salud;
         const color = pct >= 80 ? '#22c55e' : pct >= 55 ? 'var(--brand)' : 'var(--alert)';
         const badge = pct >= 80 ? 'OK' : pct >= 55 ? 'REGULAR' : 'CRÍTICO';
@@ -2192,6 +2694,13 @@
             </div>
             <span class="text-xs font-mono whitespace-nowrap" style="color:${color};">${badge}</span>
           </div>
+        </td>
+        <td class="py-3 px-4">
+          <button onclick="openAssetDetail(${idx})"
+            class="px-2.5 py-1 rounded-lg text-xs font-mono transition-all hover:scale-[1.02] whitespace-nowrap"
+            style="background:rgba(var(--brand-rgb),0.1);color:var(--brand);border:1px solid rgba(var(--brand-rgb),0.2);">
+            Turno →
+          </button>
         </td>
       </tr>`;
       }).join('');
@@ -2281,6 +2790,7 @@
 
     // ---- PLANT MODAL ----
     function showMachineInfo(code, name, isAlert) {
+      resetEvidence();
       const asset = activosData.find(a => a.nombre === name) || {};
       const salud = asset.salud || (isAlert ? 52 : 85);
       const healthColor = salud >= 80 ? '#22c55e' : salud >= 55 ? 'var(--brand)' : 'var(--alert)';
@@ -2306,6 +2816,160 @@
     function mockScan() {
       const a = activosData[Math.floor(Math.random() * activosData.length)];
       alert(`QR Escaneado: ${a.nombre}\nID: ${a.id}\nUbicación: ${a.ubicacion}\nSalud: ${a.salud}%\nÚltima OT: ${otData.find(o => o.activo === a.nombre)?.id || 'N/A'}`);
+    }
+
+    // ---- ASSET REGISTRATION MODAL ----
+    function openAssetModal() {
+      goAssetStep(1);
+      document.getElementById('assetModal').classList.add('open');
+    }
+    function closeAssetModal(e) {
+      if (!e || e.target === document.getElementById('assetModal') || !e.target.closest) {
+        document.getElementById('assetModal').classList.remove('open');
+      }
+    }
+    function goAssetStep(n) {
+      document.getElementById('assetStep1').classList.toggle('hidden', n !== 1);
+      document.getElementById('assetStep2').classList.toggle('hidden', n !== 2);
+      document.getElementById('assetStepLabel').textContent =
+        n === 1 ? 'Paso 1 de 2 — Ficha Técnica' : 'Paso 2 de 2 — Galería Base';
+      document.querySelectorAll('.step-dot').forEach((d, i) => {
+        d.classList.toggle('active', i < n);
+      });
+    }
+    function goAssetStep2() {
+      const year = document.getElementById('assetYear').value.trim();
+      const model = document.getElementById('assetModel').value.trim();
+      if (!year || !model) {
+        const s1 = document.getElementById('assetStep1');
+        s1.classList.add('shake');
+        setTimeout(() => s1.classList.remove('shake'), 400);
+        return;
+      }
+      goAssetStep(2);
+    }
+    function triggerSlotInput(slotId) {
+      document.getElementById('slotInput_' + slotId).click();
+    }
+    function previewSlotImage(input, slotId) {
+      if (!input.files[0]) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const slot = document.getElementById('slot_' + slotId);
+        slot.classList.add('filled');
+        slot.innerHTML = `<img src="${e.target.result}" alt="preview" />`
+          + `<div style="position:absolute;bottom:6px;left:6px;background:rgba(0,0,0,0.7);padding:2px 8px;border-radius:6px;">`
+          + `<span style="font-size:0.65rem;color:var(--brand);font-family:monospace;">✓ Cargada</span></div>`;
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+    function submitAssetRegistration() {
+      const filled = document.querySelectorAll('#assetStep2 .img-slot.filled').length;
+      document.getElementById('assetModal').classList.remove('open');
+      showToast('Activo registrado con ' + filled + ' foto' + (filled !== 1 ? 's' : '') + ' de galería.');
+    }
+
+    // ---- ASSET DETAIL / SHIFT REPORT ----
+    let currentAssetIdx = null;
+    function openAssetDetail(idx) {
+      currentAssetIdx = idx;
+      const a = activosData[idx];
+      document.getElementById('adId').textContent = a.id;
+      document.getElementById('adName').textContent = a.nombre;
+      document.getElementById('adUbicacion').textContent = a.ubicacion;
+      document.getElementById('adHoras').value = '';
+      document.getElementById('chk-lube').checked = false;
+      document.getElementById('chk-limpieza').checked = false;
+      document.getElementById('chk-inspeccion').checked = false;
+      document.getElementById('adSuccessMsg').style.display = 'none';
+      document.getElementById('adForm').style.display = '';
+      document.getElementById('assetDetailModal').classList.add('open');
+    }
+    function closeAssetDetail(e) {
+      if (!e || e.target === document.getElementById('assetDetailModal') || !e.target.closest) {
+        document.getElementById('assetDetailModal').classList.remove('open');
+      }
+    }
+    function submitShiftReport(e) {
+      e.preventDefault();
+      const horas = parseFloat(document.getElementById('adHoras').value);
+      if (!horas || horas <= 0) {
+        const inp = document.getElementById('adHoras');
+        inp.classList.add('shake');
+        setTimeout(() => inp.classList.remove('shake'), 400);
+        return;
+      }
+      if (currentAssetIdx !== null) activosData[currentAssetIdx].horas += horas;
+      document.getElementById('adForm').style.display = 'none';
+      const s = document.getElementById('adSuccessMsg');
+      s.style.display = 'flex';
+      setTimeout(() => document.getElementById('assetDetailModal').classList.remove('open'), 1800);
+    }
+
+    // ---- EXCEL IMPORT ----
+    function handleExcelDragOver(e) {
+      e.preventDefault();
+      document.getElementById('excelDrop').classList.add('dragover');
+    }
+    function handleExcelDragLeave() {
+      document.getElementById('excelDrop').classList.remove('dragover');
+    }
+    function handleExcelDrop(e) {
+      e.preventDefault();
+      document.getElementById('excelDrop').classList.remove('dragover');
+      simulateExcelImport();
+    }
+    function simulateExcelImport() {
+      const drop = document.getElementById('excelDrop');
+      drop.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;gap:8px;">`
+        + `<div class="dot-brand"></div>`
+        + `<span style="font-size:0.75rem;color:rgba(255,255,255,0.6);font-family:monospace;">Procesando archivo...</span></div>`;
+      setTimeout(() => {
+        drop.innerHTML = `<div style="display:flex;align-items:center;gap:8px;">`
+          + `<svg style="width:16px;height:16px;flex-shrink:0;color:var(--brand);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
+          + `<span style="font-size:0.75rem;font-family:monospace;color:white;">paradas_mayo_2026.xlsx &mdash; <span style="color:var(--brand);">142 registros detectados</span></span></div>`;
+        document.getElementById('excelMapping').classList.remove('hidden');
+      }, 1400);
+    }
+
+    // ---- EVIDENCE UPLOAD ----
+    function handleEvidenceUpload(input) {
+      if (!input.files[0]) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        document.getElementById('evidenceZone').classList.add('hidden');
+        const wrap = document.getElementById('evidenceScanWrap');
+        wrap.classList.remove('hidden');
+        document.getElementById('evidencePreview').src = e.target.result;
+        document.getElementById('evidenceScanOverlay').style.display = '';
+        document.getElementById('evidenceResult').classList.add('hidden');
+        setTimeout(() => {
+          document.getElementById('evidenceScanOverlay').style.display = 'none';
+          document.getElementById('evidenceResult').classList.remove('hidden');
+        }, 3000);
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+    function resetEvidence() {
+      document.getElementById('evidenceZone').classList.remove('hidden');
+      document.getElementById('evidenceScanWrap').classList.add('hidden');
+      document.getElementById('evidenceResult').classList.add('hidden');
+      if (document.getElementById('evidenceScanOverlay'))
+        document.getElementById('evidenceScanOverlay').style.display = '';
+      document.getElementById('evidenceInput').value = '';
+    }
+
+    // ---- TOAST ----
+    function showToast(msg) {
+      const t = document.getElementById('iqToast');
+      t.textContent = msg;
+      t.classList.remove('hidden', 'opacity-0');
+      t.classList.add('opacity-100');
+      setTimeout(() => {
+        t.classList.remove('opacity-100');
+        t.classList.add('opacity-0');
+        setTimeout(() => t.classList.add('hidden'), 400);
+      }, 3200);
     }
 
     // ---- CONTACT FORM ----
